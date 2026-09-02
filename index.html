@@ -225,24 +225,25 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #sigSubtext{font-family:var(--body);font-size:17px;color:#d0f4fc;letter-spacing:.16em;text-align:center}
 /* Rocky the Eridian Sticker */
 #rockySticker {
-  position: fixed;
-  bottom: 22px;
-  left: 22px;
-  z-index: 25;
+  position: relative;
+  display: flex;
+  align-items: center;
   cursor: pointer;
   user-select: none;
+  pointer-events: auto;
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  filter: drop-shadow(0 8px 22px rgba(0,0,0,0.75));
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.7));
+  flex-shrink: 0;
 }
 #rockySticker:hover {
-  transform: scale(1.12) rotate(3deg);
+  transform: scale(1.15) rotate(4deg);
 }
 #rockySticker:active {
-  transform: scale(0.96) rotate(-2deg);
+  transform: scale(0.95) rotate(-2deg);
 }
 #rockyImg {
-  width: 120px;
-  height: 120px;
+  width: 82px;
+  height: 82px;
   display: block;
   pointer-events: auto;
   animation: rockyBreathe 4s ease-in-out infinite;
@@ -253,31 +254,32 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 }
 #rockyBubble {
   position: absolute;
-  bottom: 112%;
-  left: 8px;
+  top: calc(100% + 10px);
+  left: 0;
   background: #09141c;
   border: 2px solid #5bd0e8;
   color: #ffd700;
   font-family: var(--display);
   font-size: 10px;
-  padding: 8px 14px;
+  padding: 7px 13px;
   white-space: nowrap;
   border-radius: 4px;
   box-shadow: 0 4px 18px rgba(0,0,0,0.6), 3px 3px 0 #000;
   opacity: 0;
   pointer-events: none;
-  transform: translateY(8px);
+  transform: translateY(-6px);
   transition: opacity 0.25s ease, transform 0.25s ease;
   letter-spacing: 0.08em;
+  z-index: 30;
 }
 #rockyBubble::after {
   content: '';
   position: absolute;
-  top: 100%;
-  left: 26px;
+  bottom: 100%;
+  left: 24px;
   border-width: 6px;
   border-style: solid;
-  border-color: #5bd0e8 transparent transparent transparent;
+  border-color: transparent transparent #5bd0e8 transparent;
 }
 #rockySticker:hover #rockyBubble,
 #rockySticker.active #rockyBubble {
@@ -340,7 +342,13 @@ MARY</h1>
 <section class="phase" id="mapPhase" aria-label="System map">
   <canvas id="mapCanvas"></canvas>
   <div id="mapHud">
-    <div id="mapTitle">THE OUTER WILDS<small>FAN SURVEY CHART // SCROLL TO ZOOM &middot; DRAG TO PAN &middot; FIT TO RESET</small></div>
+    <div style="display:flex;align-items:center;gap:18px;pointer-events:auto;">
+      <div id="rockySticker" title="Rocky: 'Amaze! Amaze! Amaze!'">
+        <img src="rocky.png" alt="Rocky from Project Hail Mary" id="rockyImg" />
+        <div id="rockyBubble">AMAZE! AMAZE! AMAZE! 🎵🎶</div>
+      </div>
+      <div id="mapTitle">THE OUTER WILDS<small>FAN SURVEY CHART // SCROLL TO ZOOM &middot; DRAG TO PAN &middot; FIT TO RESET</small></div>
+    </div>
     <div class="hudBtns">
       <button class="pxBtn" id="signalBtn" title="Toggle Signalscope (or press S)" style="color:#5bd0e8;border-color:#2a7588">&#128225; SIGNALSCOPE</button>
       <button class="pxBtn" id="zoomOutBtn" title="Zoom out">&minus;</button>
@@ -387,11 +395,6 @@ MARY</h1>
     <span class="logTag">// KESTREL SURVEY LOG</span>
   </aside>
 </section>
-
-<div id="rockySticker" title="Rocky: 'Amaze! Amaze! Amaze!'">
-  <div id="rockyBubble">AMAZE! AMAZE! AMAZE! 🎵🎶</div>
-  <img src="rocky.png" alt="Rocky from Project Hail Mary" id="rockyImg" />
-</div>
 
 <div id="ytPlayerWrap" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;z-index:-1"><div id="ytPlayer"></div></div>
 
