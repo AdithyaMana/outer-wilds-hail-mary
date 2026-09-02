@@ -396,7 +396,7 @@ MARY</h1>
   </aside>
 </section>
 
-<div id="ytPlayerWrap" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;z-index:-1"><div id="ytPlayer"></div></div>
+<div id="ytPlayerWrap" style="position:fixed;bottom:0;right:0;width:240px;height:180px;opacity:0.001;pointer-events:none;z-index:-1"><div id="ytPlayer"></div></div>
 
 <div id="introCtl">
   <button class="pxBtn" id="speedBtn" title="Cycle intro playback speed">&#9656; 1x</button>
@@ -409,7 +409,7 @@ MARY</h1>
 const ytTag=document.createElement('script');
 ytTag.src='https://www.youtube.com/iframe_api';
 document.head.appendChild(ytTag);
-let ytPlayer=null,ytReady=false;
+let ytPlayer=null,ytReady=false,ytStarted=false;
 
 const MAIN_TRACKS=[
   { id:"RxAu1VsaGtc", title:"Amaze Amaze Amaze (Life on Erid)" },
@@ -432,25 +432,33 @@ function updateTrackName(){
 
 window.onYouTubeIframeAPIReady=function(){
   ytPlayer=new YT.Player('ytPlayer',{
-    height:'1',width:'1',
+    height:'180',width:'240',
     videoId:MAIN_TRACKS[0].id,
     playerVars:{
       autoplay:1,
+      playsinline:1,
+      enablejsapi:1,
       controls:0,
-      rel:0
+      rel:0,
+      origin:window.location.origin
     },
     events:{
       onReady:function(){
         ytReady=true;
         ytPlay();
+        setTimeout(ytPlay,500);
+        setTimeout(ytPlay,1500);
         updateTrackName();
       },
       onStateChange:function(e){
+        if(e.data===YT.PlayerState.PLAYING){
+          ytStarted=true;
+          updateTrackName();
+          const mb=document.getElementById("muteBtn");
+          if(mb)mb.innerHTML="&#9834; ON";
+        }
         if(e.data===YT.PlayerState.ENDED){
           if(!soloMode)ytNext();
-        }
-        if(e.data===YT.PlayerState.PLAYING){
-          updateTrackName();
         }
       }
     }
@@ -461,6 +469,7 @@ function ytPlay(){
   if(!ytReady||!ytPlayer)return;
   try{
     if(ytPlayer.unMute)ytPlayer.unMute();
+    if(ytPlayer.setVolume)ytPlayer.setVolume(100);
     if(ytPlayer.playVideo)ytPlayer.playVideo();
     updateTrackName();
   }catch(e){}
@@ -1238,23 +1247,13 @@ function restartAnim(el){el.style.animation="none";void el.offsetWidth;el.style.
 
 /* With YouTube providing music, there is no fanfare to sync against. We still
    hold on black briefly so the prologue text can fade, then proceed to the title. */
-let waitingForAudio=false,waitTimer=0,introWaived=false;
+let waitingForAudio=false,waitTimer=0,introWaived=true;
 function beginTitle(){
   if(cur!==0)return;
-  if(!audioArmed&&!introWaived){
-    waitingForAudio=true;
-    $("#soundHint").classList.add("show");
-    clearTimeout(waitTimer);
-    waitTimer=setTimeout(()=>{                 // no click? carry on silently
-      introWaived=true;waitingForAudio=false;
-      $("#soundHint").classList.remove("show");
-      beginTitle();
-    },9000);
-    return;
-  }
-  waitingForAudio=false;clearTimeout(waitTimer);
+  waitingForAudio=false;
+  clearTimeout(waitTimer);
   $("#soundHint").classList.remove("show");
-  const black=1150/SPEED;
+  const black=800/SPEED;
   setTimeout(()=>{if(cur===0)show(1);},black);
 }
 /* Measure the crawl and set its end position so the animation finishes the moment
@@ -1270,10 +1269,9 @@ function show(i){
   cur=i;
   $("#introCtl").classList.toggle("show",i<3);
   AUDIO.resume();
+  ytPlay();
   if(i===0){
-    // No music under the blue text — the silence is what makes the hit land.
-    AUDIO.stopMap();AUDIO.stopPad();
-    if(audioArmed)AUDIO.prologueSwell(4.6/SPEED);
+    armAudio();
     const p=$("#prologue p");
     restartAnim(p);
     p.addEventListener("animationend",()=>{
@@ -2468,22 +2466,32 @@ sizeAll();
 
 let audioArmed=false;
 function armAudio(){
-  if(audioArmed)return;
-  audioArmed=true;
-  AUDIO.init();AUDIO.resume();
-  AUDIO.setMuted(false);
-  $("#soundHint").classList.remove("show");
-  $("#muteBtn").innerHTML="&#9834; ON";
+  if(!audioArmed){
+    audioArmed=true;
+    AUDIO.init();
+    AUDIO.resume();
+    AUDIO.setMuted(false);
+    $("#soundHint").classList.remove("show");
+    $("#muteBtn").innerHTML="&#9834; ON";
+    $("#trackCtl").classList.add("show");
+  }
   ytPlay();
-  $("#trackCtl").classList.add("show");
-  setTimeout(updateTrackName,600);
-  if(waitingForAudio){beginTitle();return;}
+  setTimeout(updateTrackName,300);
 }
-for(const ev of ["pointerdown","keydown","touchstart","mousemove","wheel","click"])
-  addEventListener(ev,armAudio,{once:false,passive:true});
 
-// Trigger sound immediately
-setTimeout(armAudio,100);
+for(const ev of ["pointerdown","keydown","touchstart","mousedown","click","wheel"])
+  window.addEventListener(ev,armAudio,{passive:true});
+
+window.addEventListener("mousemove",function onFirstMove(){
+  armAudio();
+  window.removeEventListener("mousemove",onFirstMove);
+},{passive:true});
+
+// Trigger sound immediately on boot
+armAudio();
+setTimeout(armAudio,200);
+setTimeout(armAudio,800);
+setTimeout(armAudio,2000);
 
 $("#muteBtn").classList.add("show");
 $("#muteBtn").innerHTML="&#9834; ON";
