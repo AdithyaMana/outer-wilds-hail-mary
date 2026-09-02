@@ -1,0 +1,2410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HAIL MARY — an Outer Wilds fan chart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Anton&family=News+Cycle:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/star-jedi" rel="stylesheet">
+<style>
+:root{
+  --void:#050309;
+  --void-2:#0b0716;
+  --crawl-gold:#ffe81f;
+  --prologue-cyan:#4bd5ee;
+  --ember:#ff6b35;
+  --panel:#0d1024;
+  --panel-edge:#2a3566;
+  --ink:#e8e4d8;
+  --ink-dim:#8d93b8;
+  --display:'Press Start 2P', monospace;
+  --body:'VT323', monospace;
+  --logo-font:'Star Jedi', 'Anton', sans-serif;
+  --cine-body:'News Cycle', 'News Gothic', 'Franklin Gothic Medium', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--void);color:var(--ink);font-family:var(--body)}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+#stars{position:fixed;inset:0;z-index:0}
+.phase{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1.2s ease}
+.phase.on{opacity:1;pointer-events:auto}
+
+/* ---------- PHASE 1 : prologue ---------- */
+#prologue p{
+  font-family:var(--cine-body);
+  font-weight:700;
+  color:var(--prologue-cyan);
+  font-size:clamp(24px,4.2vw,48px);
+  line-height:1.6;
+  text-align:center;
+  max-width:30ch;
+  animation:prologueFade 4.6s ease forwards;
+}
+@keyframes prologueFade{
+  0%{opacity:0}
+  12%{opacity:1}
+  80%{opacity:1}
+  100%{opacity:0}
+}
+
+/* ---------- PHASE 2 : title + crawl ---------- */
+#crawlPhase{perspective:360px;perspective-origin:50% 38%;overflow:hidden;transition:opacity .01s linear}
+#bigTitle{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  font-family:var(--logo-font);
+  font-weight:400;
+  color:var(--crawl-gold);
+  text-align:center;
+  font-size:clamp(62px,17vw,235px);
+  line-height:1;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  animation:titleRecede 8.5s cubic-bezier(.36,0,.66,1) forwards;
+  white-space:pre;
+}
+@keyframes titleRecede{
+  0%{transform:translate(-50%,-50%) scale(1.02);opacity:1}
+  14%{transform:translate(-50%,-50%) scale(1);opacity:1}   /* settle on the chord */
+  22%{transform:translate(-50%,-50%) scale(.96);opacity:1} /* then begin the fall away */
+  88%{opacity:1}
+  100%{transform:translate(-50%,-50%) scale(.035);opacity:0}
+}
+#crawlWrap{
+  position:absolute;left:50%;bottom:-8%;
+  width:min(88vw,860px);height:260%;
+  transform:translateX(-50%) rotateX(54deg);
+  transform-origin:50% 100%;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.35) 20%,#000 52%);
+  mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.35) 20%,#000 52%);
+}
+#crawlText{
+  position:absolute;left:0;right:0;top:100%;
+  font-family:var(--cine-body);
+  font-weight:700;
+  color:var(--crawl-gold);
+  text-align:justify;
+  text-align-last:justify;
+  font-size:clamp(27px,5.4vw,62px);
+  line-height:1.22;
+  letter-spacing:.005em;
+  animation:crawlUp 30s linear forwards;
+  animation-delay:6.4s;
+}
+#crawlText h2{font-family:var(--cine-body);font-weight:700;font-size:.9em;text-align:center;text-align-last:center;margin-bottom:1.6em;line-height:1.3;letter-spacing:.02em}
+#crawlText h2 .ep{display:block;font-weight:700;font-size:1em;margin-bottom:.35em;letter-spacing:.02em}
+#crawlText p{margin-bottom:1em}
+@keyframes crawlUp{
+  from{top:92%}
+  to{top:var(--crawl-end,-120%)}
+}
+#crawlFade{
+  position:absolute;left:0;right:0;top:0;height:12%;
+  background:linear-gradient(to bottom,var(--void) 4%,transparent);
+  pointer-events:none;z-index:6;
+}
+
+/* ---------- PHASE 3 : flyby ---------- */
+#flyby{z-index:5}
+#flybyCanvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---------- PHASE 4 : system map ---------- */
+#mapPhase{z-index:4;transition-duration:2s}
+#mapCanvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+#mapHud{position:absolute;top:0;left:0;right:0;padding:22px 26px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+#mapTitle{font-family:var(--display);font-size:clamp(12px,1.7vw,17px);color:var(--ink);letter-spacing:.12em;text-shadow:0 0 12px rgba(232,228,216,.3)}
+#mapTitle small{display:block;margin-top:8px;font-family:var(--body);font-size:20px;color:var(--ink-dim);letter-spacing:.18em}
+.hudBtns{display:flex;gap:12px;pointer-events:auto}
+.pxBtn{
+  font-family:var(--display);font-size:11px;color:var(--ink);
+  background:var(--panel);border:2px solid var(--panel-edge);
+  padding:11px 16px;cursor:pointer;letter-spacing:.08em;
+  box-shadow:4px 4px 0 #000;
+  transition:transform .08s ease, background .15s;
+}
+.pxBtn:hover{background:#161c3d;transform:translate(-1px,-1px);box-shadow:5px 5px 0 #000}
+.pxBtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}
+.pxBtn:focus-visible{outline:2px solid var(--crawl-gold);outline-offset:2px}
+#tooltip{
+  position:absolute;pointer-events:none;display:none;
+  font-family:var(--display);font-size:12px;color:var(--ink);
+  background:rgba(13,16,36,.92);border:2px solid var(--panel-edge);
+  padding:10px 14px;letter-spacing:.1em;white-space:nowrap;
+  box-shadow:4px 4px 0 #000;z-index:9;
+}
+#tooltip span{display:block;margin-top:6px;font-family:var(--body);font-size:18px;color:var(--ink-dim);letter-spacing:.15em}
+
+/* detail panel */
+#panel{
+  position:absolute;top:0;right:0;bottom:0;width:min(440px,92vw);
+  background:linear-gradient(180deg,#0d1024 0%,#090b1c 100%);
+  border-left:3px solid var(--panel-edge);
+  transform:translateX(105%);transition:transform .35s cubic-bezier(.2,.9,.3,1);
+  padding:28px 26px;overflow-y:auto;z-index:8;
+  box-shadow:-12px 0 40px rgba(0,0,0,.6);
+}
+#panel.open{transform:translateX(0)}
+#panelClose{position:absolute;top:14px;right:14px}
+#panelSpriteWrap{display:flex;justify-content:center;padding:18px 0 6px}
+#panelSprite{width:192px;height:192px}
+#panelName{font-family:var(--display);font-size:19px;color:var(--crawl-gold);text-align:center;margin-top:14px;letter-spacing:.06em;line-height:1.5}
+#panelClass{font-family:var(--body);font-size:20px;color:var(--prologue-cyan);text-align:center;letter-spacing:.3em;margin-top:8px;text-transform:uppercase}
+.statGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.stat{border:2px solid var(--panel-edge);background:rgba(0,0,0,.25);padding:12px 14px}
+.stat b{display:block;font-family:var(--display);font-size:9px;color:var(--ink-dim);letter-spacing:.1em;margin-bottom:7px}
+.stat span{font-family:var(--body);font-size:22px;color:var(--ink)}
+#panelLore{font-family:var(--body);font-size:21px;line-height:1.55;color:var(--ink);border-top:2px dashed var(--panel-edge);padding-top:18px}
+#panelLore::first-letter{color:var(--ember);font-size:1.4em}
+.logTag{display:inline-block;margin-top:18px;font-family:var(--display);font-size:9px;color:var(--ember);border:2px solid var(--ember);padding:8px 12px;letter-spacing:.12em}
+
+#introCtl{position:fixed;bottom:22px;right:22px;z-index:20;display:none;gap:10px}
+#introCtl.show{display:flex}
+
+#soundHint{position:fixed;left:50%;bottom:14%;transform:translateX(-50%);z-index:22;
+  font-family:var(--cine-body);font-weight:700;color:var(--prologue-cyan);
+  font-size:clamp(15px,1.9vw,21px);letter-spacing:.16em;text-transform:uppercase;
+  opacity:0;pointer-events:none;transition:opacity .6s ease;text-align:center;white-space:nowrap}
+#soundHint.show{opacity:.75;animation:hintPulse 2.4s ease-in-out infinite}
+#soundHint span{display:block;font-size:1.5em;margin-bottom:6px}
+@keyframes hintPulse{0%,100%{opacity:.75}50%{opacity:.35}}
+#muteBtn{position:fixed;bottom:22px;left:22px;z-index:21;display:none}
+#muteBtn.show{display:block}
+#trackCtl{position:fixed;bottom:70px;left:22px;z-index:21;display:none;align-items:center;gap:8px}
+#trackCtl.show{display:flex}
+#trackCtl .pxBtn{padding:9px 13px;font-size:13px;min-width:0}
+#trackName{font-family:var(--body);font-size:18px;color:var(--ink-dim);letter-spacing:.12em;
+  max-width:min(320px,48vw);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  background:rgba(13,16,36,.85);border:1px solid var(--panel-edge);padding:7px 12px;
+  pointer-events:none;user-select:none}
+#vignette{position:fixed;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+
+/* Signalscope CRT Overlay */
+#signalOverlay{
+  position:absolute;inset:0;pointer-events:none;display:none;z-index:15;
+  background:radial-gradient(circle at center,rgba(10,35,30,.25) 0%,rgba(4,14,12,.75) 80%,rgba(0,0,0,.92) 100%);
+  box-shadow:inset 0 0 100px rgba(0,255,180,.15);
+}
+#signalOverlay.active{display:block}
+.sigScanlines{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(rgba(18,32,24,0) 50%,rgba(0,0,0,.45) 50%),linear-gradient(90deg,rgba(0,255,180,.03),rgba(0,255,180,.01),rgba(0,255,180,.03));
+  background-size:100% 4px,6px 100%;
+}
+#sigReticle{
+  position:absolute;width:90px;height:90px;transform:translate(-50%,-50%);pointer-events:none;
+  transition:width .12s,height .12s;
+}
+#sigReticle.locked{width:110px;height:110px}
+.sigCrosshair{position:absolute;inset:0;border:2px dashed rgba(91,208,232,.5);border-radius:50%}
+.sigRingInner{position:absolute;inset:18px;border:2px solid rgba(91,208,232,.85);border-radius:50%;animation:sigSpin 8s linear infinite}
+.sigRingOuter{position:absolute;inset:6px;border:1px solid rgba(91,208,232,.35);border-radius:50%}
+@keyframes sigSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+#sigTopBar{
+  position:absolute;top:24px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:rgba(5,20,18,.85);border:2px solid #2a7588;padding:10px 22px;
+  box-shadow:0 0 20px rgba(91,208,232,.25),4px 4px 0 #000;
+}
+#sigTitle{font-family:var(--display);font-size:12px;color:#5bd0e8;letter-spacing:.14em}
+#sigFreq{font-family:var(--body);font-size:18px;color:#a8f0ff;letter-spacing:.2em}
+#sigMeterWrap{display:flex;align-items:center;gap:10px;margin-top:2px}
+#sigMeterBar{width:140px;height:10px;background:rgba(0,0,0,.6);border:1px solid #2a7588;overflow:hidden}
+#sigMeterFill{height:100%;width:0%;background:linear-gradient(90deg,#2a7588,#5bd0e8,#ffd700);transition:width .1s}
+#sigDb{font-family:var(--display);font-size:10px;color:#5bd0e8;min-width:55px}
+
+#sigBottomBar{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:rgba(5,20,18,.88);border:2px solid #2a7588;padding:12px 24px;
+  box-shadow:0 0 25px rgba(91,208,232,.25),4px 4px 0 #000;
+}
+#sigWaveCanvas{width:280px;height:44px;background:#03100d;border:1px solid #1a4f5c}
+#sigStatus{font-family:var(--display);font-size:11px;color:#5bd0e8;letter-spacing:.12em;text-align:center}
+#sigSubtext{font-family:var(--body);font-size:17px;color:#d0f4fc;letter-spacing:.16em;text-align:center}
+
+
+@media (max-width:640px){
+  #panel{top:auto;height:72vh;width:100vw;border-left:none;border-top:3px solid var(--panel-edge);transform:translateY(105%)}
+  #panel.open{transform:translateY(0)}
+  #mapHud{flex-direction:column;gap:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  #prologue p{animation-duration:3s}
+  #bigTitle{animation-duration:3s}
+  #crawlText{animation-duration:14s;animation-delay:2s}
+}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<button class="pxBtn" id="muteBtn" title="Sound">&#9834; SOUND</button>
+<div id="trackCtl">
+  <button class="pxBtn" id="prevTrack" title="Previous track">&#9664;</button>
+  <span id="trackName">—</span>
+  <button class="pxBtn" id="nextTrack" title="Next track">&#9654;</button>
+</div>
+<div id="soundHint"><span>&#9834;</span> click anywhere for sound</div>
+<div id="vignette"></div>
+
+<!-- PHASE 1 -->
+<section class="phase" id="prologue" aria-label="Prologue">
+  <p>Long ago, on the far rim of a forgotten galaxy . . .</p>
+</section>
+
+<!-- PHASE 2 -->
+<section class="phase" id="crawlPhase" aria-label="Opening crawl">
+  <div id="crawlFade"></div>
+  <h1 id="bigTitle">HAIL
+MARY</h1>
+  <div id="crawlWrap">
+    <div id="crawlText">
+      <h2><span class="ep">CHAPTER I</span>THE WANDERER'S MAP</h2>
+      <p>It is an age of silence. The great survey fleets are gone, and the charts they left behind have crumbled into rumor and dust.</p>
+      <p>Out past the last beacon, a lone scout ship, the HAIL MARY, drifts toward a small, restless SOLAR SYSTEM at the edge of the charts — a handful of impossible worlds circling a sun in its final days.</p>
+      <p>Its pilot carries one final task: to chart every planet, name every shadow, and finish the map that was never meant to be completed.</p>
+      <p>But the amber sun is dimming faster than any star should. Something small and patient is drinking its fire, and the map will not be complete until it is found.</p>
+      <p>The engines wake. The long approach begins . . .</p>
+    </div>
+  </div>
+</section>
+
+<!-- PHASE 3 -->
+<section class="phase" id="flyby" aria-label="Ship flyby">
+  <canvas id="flybyCanvas"></canvas>
+</section>
+
+<!-- PHASE 4 -->
+<section class="phase" id="mapPhase" aria-label="System map">
+  <canvas id="mapCanvas"></canvas>
+  <div id="mapHud">
+    <div id="mapTitle">THE OUTER WILDS<small>FAN SURVEY CHART // SCROLL TO ZOOM &middot; DRAG TO PAN &middot; FIT TO RESET</small></div>
+    <div class="hudBtns">
+      <button class="pxBtn" id="signalBtn" title="Toggle Signalscope (or press S)" style="color:#5bd0e8;border-color:#2a7588">&#128225; SIGNALSCOPE</button>
+      <button class="pxBtn" id="zoomOutBtn" title="Zoom out">&minus;</button>
+      <button class="pxBtn" id="zoomInBtn" title="Zoom in">+</button>
+      <button class="pxBtn" id="fitBtn" title="Fit the whole system">FIT</button>
+      <button class="pxBtn" id="pauseBtn">&#10074;&#10074; ORBITS</button>
+      <button class="pxBtn" id="replayBtn">&#8635; INTRO</button>
+    </div>
+  </div>
+  <div id="tooltip"></div>
+
+  <!-- Signalscope CRT Overlay -->
+  <div id="signalOverlay">
+    <div class="sigScanlines"></div>
+    <div id="sigReticle">
+      <div class="sigCrosshair"></div>
+      <div class="sigRingInner"></div>
+      <div class="sigRingOuter"></div>
+    </div>
+    <div id="sigTopBar">
+      <div id="sigTitle">HEARTHIAN VENTURES // SIGNALSCOPE v2.4</div>
+      <div id="sigFreq">FREQ: <span id="sigFreqName">OUTER WILDS VENTURES [102.4 MHz]</span></div>
+      <div id="sigMeterWrap">
+        <span style="font-family:var(--display);font-size:9px;color:#5bd0e8">SIGNAL:</span>
+        <div id="sigMeterBar"><div id="sigMeterFill"></div></div>
+        <span id="sigDb">-INF dB</span>
+      </div>
+    </div>
+    <div id="sigBottomBar">
+      <canvas id="sigWaveCanvas" width="280" height="44"></canvas>
+      <div id="sigStatus">AIM AT A PLANET TO TUNE IN FREQUENCY</div>
+      <div id="sigSubtext">PRESS [S] OR CLICK BUTTON TO EXIT</div>
+    </div>
+    <button class="pxBtn" id="sigExitBtn" style="pointer-events:auto;position:absolute;bottom:26px;right:26px;color:#5bd0e8;border-color:#2a7588">✕ EXIT SIGNALSCOPE [ESC]</button>
+  </div>
+
+  <aside id="panel" aria-label="Planet details">
+    <button class="pxBtn" id="panelClose">✕</button>
+    <div id="panelSpriteWrap"><canvas id="panelSprite" width="96" height="96"></canvas></div>
+    <div id="panelName"></div>
+    <div id="panelClass"></div>
+    <div class="statGrid" id="panelStats"></div>
+    <p id="panelLore"></p>
+    <span class="logTag">// KESTREL SURVEY LOG</span>
+  </aside>
+</section>
+
+<div id="ytPlayerWrap" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;z-index:-1"><div id="ytPlayer"></div></div>
+
+<div id="introCtl">
+  <button class="pxBtn" id="speedBtn" title="Cycle intro playback speed">&#9656; 1x</button>
+  <button class="pxBtn" id="skipBtn" title="Skip to the system map">SKIP &#9656;&#9614;</button>
+</div>
+
+<script>
+"use strict";
+/* ============ 2-SONG MAIN SOUNDTRACK ============ */
+const ytTag=document.createElement('script');
+ytTag.src='https://www.youtube.com/iframe_api';
+document.head.appendChild(ytTag);
+let ytPlayer=null,ytReady=false;
+
+const MAIN_TRACKS=[
+  { id:"Xpkc-NU1KA0", title:"Outer Wilds (Main Theme)" },
+  { id:"RxAu1VsaGtc", title:"Amaze Amaze Amaze (Life on Erid)" }
+];
+let currentMainIdx=0;
+let savedPlaybackTime=0;
+let soloMode=false;
+let currentSoloId=null;
+
+function updateTrackName(){
+  const el=document.getElementById('trackName');
+  if(!el)return;
+  if(soloMode&&currentSoloId){
+    return;
+  }
+  const cur=MAIN_TRACKS[currentMainIdx];
+  el.textContent=`${currentMainIdx+1}/2 · ${cur.title}`;
+}
+
+window.onYouTubeIframeAPIReady=function(){
+  ytPlayer=new YT.Player('ytPlayer',{
+    height:'1',width:'1',
+    videoId:MAIN_TRACKS[0].id,
+    playerVars:{
+      autoplay:0,
+      controls:0,
+      rel:0
+    },
+    events:{
+      onReady:function(){
+        ytReady=true;
+        if(audioArmed)ytPlay();
+        updateTrackName();
+      },
+      onStateChange:function(e){
+        if(e.data===YT.PlayerState.ENDED){
+          if(!soloMode)ytNext();
+        }
+        if(e.data===YT.PlayerState.PLAYING){
+          updateTrackName();
+        }
+      }
+    }
+  });
+};
+
+function ytPlay(){
+  if(!ytReady||!ytPlayer)return;
+  try{
+    if(ytPlayer.playVideo)ytPlayer.playVideo();
+    updateTrackName();
+  }catch(e){}
+}
+
+function ytNext(){
+  if(soloMode)return;
+  currentMainIdx=(currentMainIdx+1)%MAIN_TRACKS.length;
+  if(ytPlayer&&ytPlayer.loadVideoById){
+    ytPlayer.loadVideoById(MAIN_TRACKS[currentMainIdx].id);
+  }
+  updateTrackName();
+}
+
+function ytPrev(){
+  if(soloMode)return;
+  currentMainIdx=(currentMainIdx-1+MAIN_TRACKS.length)%MAIN_TRACKS.length;
+  if(ytPlayer&&ytPlayer.loadVideoById){
+    ytPlayer.loadVideoById(MAIN_TRACKS[currentMainIdx].id);
+  }
+  updateTrackName();
+}
+
+function ytMute(){if(ytReady&&ytPlayer&&ytPlayer.mute)try{ytPlayer.mute();}catch(e){}}
+function ytUnmute(){if(ytReady&&ytPlayer&&ytPlayer.unMute)try{ytPlayer.unMute();}catch(e){}}
+setInterval(updateTrackName,3000);
+
+function playSoloTrack(videoId, title){
+  if(!ytReady||!ytPlayer)return;
+  try{
+    if(!soloMode){
+      if(ytPlayer.getCurrentTime)savedPlaybackTime=ytPlayer.getCurrentTime()||0;
+      soloMode=true;
+    }
+    if(currentSoloId===videoId)return;
+    currentSoloId=videoId;
+    if(ytPlayer.loadVideoById){
+      ytPlayer.loadVideoById({videoId:videoId,startSeconds:0});
+      const el=document.getElementById('trackName');
+      if(el)el.textContent='SOLO · '+title;
+    }
+  }catch(e){}
+}
+
+function restorePlaylist(){
+  if(!ytReady||!ytPlayer||!soloMode)return;
+  soloMode=false;
+  currentSoloId=null;
+  try{
+    if(ytPlayer.loadVideoById){
+      ytPlayer.loadVideoById({
+        videoId:MAIN_TRACKS[currentMainIdx].id,
+        startSeconds:Math.floor(savedPlaybackTime)
+      });
+      setTimeout(updateTrackName,500);
+    }
+  }catch(e){}
+}
+
+
+/* ============ ORCHESTRAL AUDIO ENGINE ============
+   Instruments are built with additive synthesis: each one uses a PeriodicWave
+   whose harmonic amplitudes are modelled on the real instrument's spectrum
+   (trumpets bright with strong upper partials, horns dark and fast-rolloff,
+   clarinets odd-harmonic-dominant from their cylindrical bore, oboes with a
+   2nd harmonic louder than the fundamental, etc). Sections are played as
+   multiple detuned, slightly time-offset players so they sound like an
+   ensemble rather than one synth.
+   All MUSIC is original; only the ORCHESTRATION emulates a symphony orchestra. */
+const AUDIO=(()=>{
+  let ctx=null,master=null,verbBus=null,ready=false,muted=false;
+  const nodes={},waves={};
+  const mtof=m=>440*Math.pow(2,(m-69)/12);
+  const now=()=>ctx.currentTime;
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+
+  /* --- measured-style harmonic spectra (amplitude of harmonics 1..n) --- */
+  const SPECTRA={
+    trumpet : [1,.86,.72,.62,.48,.34,.24,.17,.11,.07,.05,.03,.02],
+    horn    : [1,.62,.34,.19,.11,.07,.04,.025,.015,.01],
+    trombone: [1,.92,.74,.58,.44,.33,.24,.17,.12,.08,.05],
+    tuba    : [1,.74,.44,.24,.13,.07,.04,.02],
+    violin  : [1,.72,.58,.47,.38,.31,.26,.21,.17,.13,.10,.08,.06,.05],
+    viola   : [1,.68,.52,.40,.31,.24,.18,.14,.10,.08,.06],
+    cello   : [1,.78,.60,.44,.33,.25,.18,.13,.09,.07,.05],
+    bass    : [1,.66,.42,.27,.17,.11,.07,.04],
+    flute   : [1,.26,.10,.045,.02,.01],
+    piccolo : [1,.17,.06,.02],
+    oboe    : [.58,1,.86,.70,.52,.38,.27,.19,.12,.08],
+    clarinet: [1,.05,.72,.05,.46,.04,.30,.03,.18,.02,.10],
+    bassoon : [.52,1,.82,.61,.42,.28,.18,.11,.07],
+    harp    : [1,.55,.34,.22,.14,.09,.06,.04,.02]
+  };
+  function buildWaves(){
+    for(const k in SPECTRA){
+      const h=SPECTRA[k],real=new Float32Array(h.length+1),imag=new Float32Array(h.length+1);
+      for(let i=0;i<h.length;i++)imag[i+1]=h[i];
+      waves[k]=ctx.createPeriodicWave(real,imag,{disableNormalization:false});
+    }
+  }
+  function impulse(sec,decay,pre){
+    const n=Math.floor(ctx.sampleRate*sec),buf=ctx.createBuffer(2,n,ctx.sampleRate);
+    const pd=Math.floor(ctx.sampleRate*(pre||0));
+    for(let c=0;c<2;c++){
+      const d=buf.getChannelData(c);
+      for(let i=0;i<n;i++){
+        if(i<pd){d[i]=0;continue;}
+        const x=(i-pd)/(n-pd);
+        // early reflections then a smooth hall tail
+        const early=(x<.06)?(Math.random()*2-1)*(1-x/.06)*.6:0;
+        d[i]=((Math.random()*2-1)*Math.pow(1-x,decay))+early;
+      }
+    }
+    return buf;
+  }
+  function noiseBuf(sec){
+    const n=Math.floor(ctx.sampleRate*sec),buf=ctx.createBuffer(1,n,ctx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+    return buf;
+  }
+  function init(){
+    if(ready)return;
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    buildWaves();
+    master=ctx.createGain();master.gain.value=0.8;
+    const comp=ctx.createDynamicsCompressor();
+    comp.threshold.value=-18;comp.knee.value=24;comp.ratio.value=4.5;
+    comp.attack.value=.008;comp.release.value=.25;
+    master.connect(comp);comp.connect(ctx.destination);
+    // concert-hall reverb: 3.4s tail with 22ms pre-delay
+    const verb=ctx.createConvolver();verb.buffer=impulse(3.4,2.2,.022);
+    verbBus=ctx.createGain();verbBus.gain.value=0.30;
+    verbBus.connect(verb);verb.connect(master);
+    nodes.noise=noiseBuf(2);
+    ready=true;
+  }
+
+  /* ---------------- one instrumental voice ----------------
+     wave      : which spectrum
+     bore/att  : envelope character per family
+     vib       : vibrato depth in cents, delayed like a real player's */
+  function play(o){
+    const {inst,m,t0,dur,vel=.2,send=.5,detune=0,vibRate=5.2,vibDepth=0,
+           atk=.04,dec=.12,sus=.8,rel=.35,cutMul=8,scoop=0}=o;
+    const f0=mtof(m);
+    const out=ctx.createGain();
+    out.gain.setValueAtTime(0,t0);
+    out.gain.linearRampToValueAtTime(vel,t0+atk);
+    out.gain.linearRampToValueAtTime(vel*sus,t0+atk+dec);
+    out.gain.setValueAtTime(vel*sus,t0+Math.max(dur,atk+dec));
+    out.gain.exponentialRampToValueAtTime(1e-4,t0+Math.max(dur,atk+dec)+rel);
+
+    const filt=ctx.createBiquadFilter();filt.type="lowpass";filt.Q.value=.9;
+    filt.frequency.setValueAtTime(f0*2.0,t0);
+    filt.frequency.linearRampToValueAtTime(f0*cutMul,t0+atk*1.4);   // brass "opens up"
+    filt.frequency.linearRampToValueAtTime(f0*cutMul*.6,t0+dur+rel);
+    filt.connect(out);
+
+    const osc=ctx.createOscillator();
+    osc.setPeriodicWave(waves[inst]);
+    osc.detune.value=detune;
+    if(scoop){                                    // brass lip scoop into the note
+      osc.frequency.setValueAtTime(f0*(1-scoop),t0);
+      osc.frequency.exponentialRampToValueAtTime(f0,t0+.055);
+    }else osc.frequency.value=f0;
+    if(vibDepth){
+      const lfo=ctx.createOscillator();lfo.type="sine";
+      lfo.frequency.value=vibRate*rnd(.94,1.06);
+      const lg=ctx.createGain();
+      lg.gain.setValueAtTime(0,t0);
+      lg.gain.linearRampToValueAtTime(vibDepth,t0+Math.min(.55,dur*.6));
+      lfo.connect(lg);lg.connect(osc.detune);
+      lfo.start(t0);lfo.stop(t0+dur+rel+.1);
+    }
+    osc.connect(filt);osc.start(t0);osc.stop(t0+dur+rel+.12);
+    out.connect(master);
+    const s=ctx.createGain();s.gain.value=send;out.connect(s);s.connect(verbBus);
+    return out;
+  }
+  /* breath/bow noise layer — what makes winds and strings sound acoustic */
+  function breath(o){
+    const {m,t0,dur,vel,band,q=8,send=.4}=o;
+    const f0=mtof(m);
+    const n=ctx.createBufferSource();n.buffer=nodes.noise;n.loop=true;
+    const f=ctx.createBiquadFilter();f.type="bandpass";f.frequency.value=f0*(band||2);f.Q.value=q;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t0);
+    g.gain.linearRampToValueAtTime(vel,t0+.03);
+    g.gain.exponentialRampToValueAtTime(vel*.35,t0+.2);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+dur+.25);
+    n.connect(f);f.connect(g);g.connect(master);
+    const s=ctx.createGain();s.gain.value=send;g.connect(s);s.connect(verbBus);
+    n.start(t0);n.stop(t0+dur+.3);
+  }
+
+  /* ---------------- SECTIONS ----------------
+     Real sections = several players, each a few cents off and a few
+     milliseconds late. That spread is the entire "ensemble" sound. */
+  const SECTION={
+    trumpets :{inst:"trumpet", n:3,spread:7, jitter:.012,atk:.045,dec:.10,sus:.86,rel:.45,cut:9, vib:6,vr:5.4,scoop:.012,send:.5},
+    horns    :{inst:"horn",    n:4,spread:9, jitter:.018,atk:.075,dec:.14,sus:.84,rel:.6, cut:6, vib:5,vr:4.8,scoop:.008,send:.62},
+    trombones:{inst:"trombone",n:3,spread:8, jitter:.014,atk:.055,dec:.12,sus:.86,rel:.5, cut:8, vib:4,vr:5.0,scoop:.010,send:.55},
+    tuba     :{inst:"tuba",    n:1,spread:0, jitter:.010,atk:.07, dec:.14,sus:.88,rel:.55,cut:5, vib:0,vr:5.0,scoop:.008,send:.5},
+    violins  :{inst:"violin",  n:7,spread:11,jitter:.020,atk:.13, dec:.18,sus:.90,rel:.75,cut:7, vib:11,vr:5.6,scoop:0,   send:.72},
+    violas   :{inst:"viola",   n:5,spread:10,jitter:.022,atk:.15, dec:.18,sus:.90,rel:.75,cut:6, vib:10,vr:5.4,scoop:0,   send:.72},
+    cellos   :{inst:"cello",   n:5,spread:10,jitter:.022,atk:.14, dec:.18,sus:.90,rel:.8, cut:6, vib:10,vr:5.2,scoop:0,   send:.7},
+    basses   :{inst:"bass",    n:4,spread:9, jitter:.024,atk:.17, dec:.20,sus:.90,rel:.85,cut:5, vib:7, vr:4.8,scoop:0,   send:.62},
+    flutes   :{inst:"flute",   n:2,spread:6, jitter:.012,atk:.06, dec:.10,sus:.90,rel:.35,cut:10,vib:9, vr:5.8,scoop:0,   send:.6},
+    piccolo  :{inst:"piccolo", n:1,spread:0, jitter:.008,atk:.05, dec:.09,sus:.90,rel:.3, cut:12,vib:8, vr:6.0,scoop:0,   send:.55},
+    oboes    :{inst:"oboe",    n:2,spread:7, jitter:.012,atk:.05, dec:.10,sus:.88,rel:.35,cut:9, vib:10,vr:5.6,scoop:0,   send:.6},
+    clarinets:{inst:"clarinet",n:2,spread:7, jitter:.014,atk:.06, dec:.11,sus:.90,rel:.4, cut:8, vib:5, vr:5.0,scoop:0,   send:.6},
+    bassoons :{inst:"bassoon", n:2,spread:8, jitter:.016,atk:.07, dec:.12,sus:.88,rel:.45,cut:6, vib:6, vr:5.0,scoop:0,   send:.6}
+  };
+  function section(name,m,t0,dur,vel){
+    const S=SECTION[name];if(!S)return;
+    for(let i=0;i<S.n;i++){
+      const det=S.n===1?0:(i/(S.n-1)-.5)*2*S.spread+rnd(-2.5,2.5);
+      const t=t0+rnd(0,S.jitter);
+      play({inst:S.inst,m,t0:t,dur,vel:vel/Math.sqrt(S.n),send:S.send,detune:det,
+            atk:S.atk*rnd(.9,1.1),dec:S.dec,sus:S.sus,rel:S.rel,cutMul:S.cut,
+            vibDepth:S.vib,vibRate:S.vr,scoop:S.scoop});
+    }
+    // acoustic noise layer
+    if(/flute|piccolo|oboe|clarinet|bassoon/.test(S.inst))
+      breath({m,t0,dur,vel:vel*.06,band:2.2,q:9,send:S.send});
+    else if(/violin|viola|cello|bass/.test(S.inst))
+      breath({m,t0,dur:Math.min(dur,.25),vel:vel*.035,band:4.5,q:4,send:S.send});
+  }
+
+  /* ---------------- PERCUSSION ---------------- */
+  function timp(t0,m,vel){
+    const f0=mtof(m);
+    // membrane modes (inharmonic) + the stick attack
+    const MODES=[[1,1],[1.50,.42],[1.96,.26],[2.44,.15],[2.90,.09]];
+    for(const [r,a] of MODES){
+      const o=ctx.createOscillator();o.type="sine";
+      o.frequency.setValueAtTime(f0*r*1.05,t0);
+      o.frequency.exponentialRampToValueAtTime(f0*r,t0+.06);
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(vel*a,t0);
+      g.gain.exponentialRampToValueAtTime(1e-4,t0+1.5/(1+r*.6));
+      o.connect(g);g.connect(master);
+      const s=ctx.createGain();s.gain.value=.4;g.connect(s);s.connect(verbBus);
+      o.start(t0);o.stop(t0+1.6);
+    }
+    const n=ctx.createBufferSource();n.buffer=nodes.noise;
+    const nf=ctx.createBiquadFilter();nf.type="lowpass";nf.frequency.value=340;
+    const ng=ctx.createGain();ng.gain.setValueAtTime(vel*.55,t0);
+    ng.gain.exponentialRampToValueAtTime(1e-4,t0+.14);
+    n.connect(nf);nf.connect(ng);ng.connect(master);n.start(t0);n.stop(t0+.16);
+  }
+  function bassDrum(t0,vel){
+    const o=ctx.createOscillator();o.type="sine";
+    o.frequency.setValueAtTime(90,t0);
+    o.frequency.exponentialRampToValueAtTime(34,t0+.22);
+    const g=ctx.createGain();g.gain.setValueAtTime(vel,t0);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+1.1);
+    o.connect(g);g.connect(master);
+    const s=ctx.createGain();s.gain.value=.3;g.connect(s);s.connect(verbBus);
+    o.start(t0);o.stop(t0+1.2);
+    const n=ctx.createBufferSource();n.buffer=nodes.noise;
+    const nf=ctx.createBiquadFilter();nf.type="lowpass";nf.frequency.value=180;
+    const ng=ctx.createGain();ng.gain.setValueAtTime(vel*.5,t0);
+    ng.gain.exponentialRampToValueAtTime(1e-4,t0+.09);
+    n.connect(nf);nf.connect(ng);ng.connect(master);n.start(t0);n.stop(t0+.1);
+  }
+  function cymbal(t0,vel,dec){
+    const n=ctx.createBufferSource();n.buffer=nodes.noise;n.loop=true;
+    const hp=ctx.createBiquadFilter();hp.type="highpass";hp.frequency.value=3600;
+    const bp=ctx.createBiquadFilter();bp.type="peaking";bp.frequency.value=7800;bp.gain.value=6;bp.Q.value=.7;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t0);
+    g.gain.linearRampToValueAtTime(vel,t0+.008);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+(dec||3.0));
+    n.connect(hp);hp.connect(bp);bp.connect(g);g.connect(master);
+    const s=ctx.createGain();s.gain.value=.9;g.connect(s);s.connect(verbBus);
+    n.start(t0);n.stop(t0+(dec||3.0)+.1);
+  }
+  function cymRoll(t0,dur,vel){
+    const n=ctx.createBufferSource();n.buffer=nodes.noise;n.loop=true;
+    const f=ctx.createBiquadFilter();f.type="highpass";f.frequency.value=5000;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t0);
+    g.gain.linearRampToValueAtTime(vel,t0+dur*.9);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+dur+.5);
+    n.connect(f);f.connect(g);g.connect(master);
+    const s=ctx.createGain();s.gain.value=.85;g.connect(s);s.connect(verbBus);
+    n.start(t0);n.stop(t0+dur+.55);
+  }
+  function snareRoll(t0,dur,v0,v1){
+    let x=0;
+    while(x<dur){
+      const v=v0+(v1-v0)*(x/dur);
+      const n=ctx.createBufferSource();n.buffer=nodes.noise;
+      const f=ctx.createBiquadFilter();f.type="bandpass";f.frequency.value=2100;f.Q.value=.8;
+      const g=ctx.createGain();g.gain.setValueAtTime(v*rnd(.7,1),t0+x);
+      g.gain.exponentialRampToValueAtTime(1e-4,t0+x+.055);
+      n.connect(f);f.connect(g);g.connect(master);
+      const s=ctx.createGain();s.gain.value=.35;g.connect(s);s.connect(verbBus);
+      n.start(t0+x);n.stop(t0+x+.06);
+      x+=.028+rnd(-.004,.004);
+    }
+  }
+  /* glockenspiel: inharmonic bar modes, the sparkle on top of the tutti */
+  function glock(t0,m,vel){
+    const f0=mtof(m);
+    for(const [r,a,d] of [[1,1,1.8],[2.76,.42,1.1],[5.40,.20,.7],[8.93,.09,.45]]){
+      const o=ctx.createOscillator();o.type="sine";o.frequency.value=f0*r;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0,t0);
+      g.gain.linearRampToValueAtTime(vel*a,t0+.004);
+      g.gain.exponentialRampToValueAtTime(1e-4,t0+d);
+      o.connect(g);g.connect(master);
+      const s=ctx.createGain();s.gain.value=.8;g.connect(s);s.connect(verbBus);
+      o.start(t0);o.stop(t0+d+.05);
+    }
+  }
+  function harpNote(t0,m,vel){
+    const o=ctx.createOscillator();o.setPeriodicWave(waves.harp);o.frequency.value=mtof(m);
+    const f=ctx.createBiquadFilter();f.type="lowpass";
+    f.frequency.setValueAtTime(mtof(m)*8,t0);
+    f.frequency.exponentialRampToValueAtTime(mtof(m)*2.2,t0+1.2);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vel,t0+.006);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+2.0);
+    o.connect(f);f.connect(g);g.connect(master);
+    const s=ctx.createGain();s.gain.value=.8;g.connect(s);s.connect(verbBus);
+    o.start(t0);o.stop(t0+2.1);
+  }
+  function harpGliss(t0,lowM,highM,dur,vel){
+    const SC=[0,2,4,5,7,9,11];let i=0;
+    for(let m=lowM;m<=highM;m++){
+      if(!SC.includes(((m%12)+12-3)%12))continue;   // Eb major
+      harpNote(t0+i*(dur/((highM-lowM)*.6)),m,vel*rnd(.7,1));
+      i++;
+    }
+  }
+  /* brass rip: smeared gliss into a downbeat */
+  function rip(fromM,toM,t0,dur,vel){
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t0);
+    g.gain.linearRampToValueAtTime(vel,t0+dur*.78);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+dur+.14);
+    const f=ctx.createBiquadFilter();f.type="lowpass";f.Q.value=1.6;
+    f.frequency.setValueAtTime(mtof(fromM)*3,t0);
+    f.frequency.exponentialRampToValueAtTime(mtof(toM)*7,t0+dur);
+    f.connect(g);
+    for(const d of [-9,0,9]){
+      const o=ctx.createOscillator();o.setPeriodicWave(waves.trombone);o.detune.value=d;
+      o.frequency.setValueAtTime(mtof(fromM),t0);
+      o.frequency.exponentialRampToValueAtTime(mtof(toM),t0+dur);
+      o.connect(f);o.start(t0);o.stop(t0+dur+.16);
+    }
+    g.connect(master);
+    const s=ctx.createGain();s.gain.value=.5;g.connect(s);s.connect(verbBus);
+  }
+
+  /* ================================================================
+     ORIGINAL FANFARE — Eb major, 4/4, 100 BPM, scored for orchestra.
+     Melody : trumpets, doubled 8va by piccolo + flutes + glockenspiel
+     Counter: horns
+     Harmony: violins/violas/cellos + trombones
+     Bass   : basses + tuba
+     Perc   : timpani, bass drum, cymbals, snare
+     ================================================================ */
+  const MELODY=[
+    [ 0.0, 75, 1.5, .46],[ 1.5, 79, 0.5, .40],
+    [ 2.0, 77, 2.0, .44],
+    [ 4.0, 75, 1.0, .40],[ 5.0, 77, 1.0, .40],[ 6.0, 79, 2.0, .46],
+    [ 8.0, 82, 1.5, .48],[ 9.5, 80, 0.5, .40],
+    [10.0, 79, 2.0, .46],
+    [12.0, 84, 3.0, .52],[15.0, 82, 1.0, .44],
+    [16.0, 80, 1.0, .44],[17.0, 77, 1.0, .42],[18.0, 79, 2.0, .46],
+    [20.0, 75, 4.0, .50]
+  ];
+  const HORNS=[
+    [0,63,2,.26],[2,62,2,.26],[4,60,2,.26],[6,63,2,.26],
+    [8,65,2,.28],[10,63,2,.26],[12,67,3,.30],[15,65,1,.26],
+    [16,63,2,.26],[18,65,2,.28],[20,63,4,.30]
+  ];
+  const CHORDS=[
+    [0,39,[51,55,58]],[2,44,[51,56,60]],[4,46,[53,58,62]],[6,43,[50,55,58]],
+    [8,48,[51,55,60]],[10,44,[51,56,60]],[12,46,[53,56,62]],[15,46,[53,56,62]],
+    [16,44,[51,56,60]],[18,46,[53,58,62]],[20,39,[51,55,58]]
+  ];
+  const FANFARE_BEATS=24;
+  const LEADIN=0.9;
+
+  /* the logo moment: (removed — YouTube playlist provides music) */
+  function titleHit(t0){}
+  /* fanfare: (removed — YouTube playlist provides music) */
+  function fanfare(){ return 0; }
+
+  /* ---- prologue: (removed — YouTube playlist provides music) ---- */
+  function prologueSwell(dur){}
+
+  /* ---- crawl underscore: (removed — YouTube playlist provides music) ---- */
+  function startPad(){}
+  function stopPad(){}
+
+  /* ---- flyby ---- */
+  function noise(o){
+    const {t0,dur,gain=.2,cut=900,type="lowpass",q=1,sweepTo,send=.4}=o;
+    const src=ctx.createBufferSource();src.buffer=nodes.noise;src.loop=true;
+    const f=ctx.createBiquadFilter();f.type=type;f.Q.value=q;
+    f.frequency.setValueAtTime(cut,t0);
+    if(sweepTo)f.frequency.exponentialRampToValueAtTime(sweepTo,t0+dur);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t0);
+    g.gain.linearRampToValueAtTime(gain,t0+dur*.18);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+dur);
+    src.connect(f);f.connect(g);g.connect(master);
+    const s=ctx.createGain();s.gain.value=send;g.connect(s);s.connect(verbBus);
+    src.start(t0);src.stop(t0+dur+.05);
+    return {src,g,f};
+  }
+  function flyby(dur){
+    if(!ready||muted)return;
+    const t=now();
+    const n=noise({t0:t,dur,gain:.30,cut:260,sweepTo:110,send:.5});
+    n.g.gain.cancelScheduledValues(t);
+    n.g.gain.setValueAtTime(0,t);
+    n.g.gain.linearRampToValueAtTime(.30,t+.22);
+    n.g.gain.setValueAtTime(.30,t+dur*.35);
+    n.g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    const o=ctx.createOscillator();o.type="sine";
+    o.frequency.setValueAtTime(64,t);
+    o.frequency.exponentialRampToValueAtTime(28,t+dur);
+    const g=ctx.createGain();g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(.30,t+.16);
+    g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.1);
+    noise({t0:t,dur:.5,gain:.26,cut:5200,sweepTo:400,send:.6});
+    // brass stinger removed — YouTube playlist provides music
+  }
+
+  /* ---- map: folk instruments (Outer Wilds side of the house) ---- */
+  function banjo(m,t0,vel){
+    const f0=mtof(m),g=ctx.createGain();
+    g.gain.setValueAtTime(0,t0);
+    g.gain.linearRampToValueAtTime(vel,t0+.005);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+.85);
+    const f=ctx.createBiquadFilter();f.type="bandpass";f.Q.value=2.4;
+    f.frequency.setValueAtTime(f0*5,t0);
+    f.frequency.exponentialRampToValueAtTime(f0*1.5,t0+.3);
+    f.connect(g);
+    const o=ctx.createOscillator();o.setPeriodicWave(waves.harp);o.frequency.value=f0;
+    const o2=ctx.createOscillator();o2.type="square";o2.frequency.value=f0;o2.detune.value=8;
+    const a2=ctx.createGain();a2.gain.value=.3;
+    o.connect(f);o2.connect(a2);a2.connect(f);
+    o.start(t0);o.stop(t0+.9);o2.start(t0);o2.stop(t0+.9);
+    g.connect(master);
+    const s=ctx.createGain();s.gain.value=.75;g.connect(s);s.connect(verbBus);
+  }
+  const SCALE_PH=[
+    [[0,74,1.5],[1.5,78,1.5],[3,81,3]],
+    [[0,83,1.5],[1.5,81,.75],[2.25,78,.75],[3,79,3]],
+    [[0,76,1.5],[1.5,79,1.5],[3,83,3]],
+    [[0,81,3],[3,79,1.5],[4.5,76,1.5]],
+    [[0,86,1.5],[1.5,85,.75],[2.25,81,.75],[3,83,3]],
+    [[0,79,1.5],[1.5,78,1.5],[3,74,3]]
+  ];
+  const OST=[[0,50],[1,57],[2,62],[3,66],[4,62],[5,57]];
+  const OST2=[[0,55],[1,62],[2,67],[3,71],[4,67],[5,62]];
+  const PADS=[[38,45,50,57],[43,50,55,62],[40,47,52,59],[45,52,57,64]];
+  /* ---- map music: (removed — YouTube playlist provides music) ---- */
+  function startMap(){}
+  function stopMap(){}
+
+  function tone(o){
+    const {type="sine",freq,t0,dur,gain=.2,cut=3000,atk=.005,rel=.3,send=.5,glide}=o;
+    const osc=ctx.createOscillator();osc.type=type;
+    osc.frequency.setValueAtTime(glide||freq,t0);
+    if(glide)osc.frequency.exponentialRampToValueAtTime(freq,t0+dur*.6);
+    const f=ctx.createBiquadFilter();f.type="lowpass";f.frequency.value=cut;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(gain,t0+atk);
+    g.gain.exponentialRampToValueAtTime(1e-4,t0+dur+rel);
+    osc.connect(f);f.connect(g);g.connect(master);
+    const s=ctx.createGain();s.gain.value=send;g.connect(s);s.connect(verbBus);
+    osc.start(t0);osc.stop(t0+dur+rel+.05);
+  }
+  const sfx={
+    hover(){ if(!ready||muted)return; tone({freq:1180,t0:now(),dur:.03,gain:.04,rel:.07,send:.3}); },
+    select(){ if(!ready||muted)return; const t=now(); banjo(74,t,.13);banjo(81,t+.075,.10); },
+    close(){ if(!ready||muted)return; banjo(69,now(),.085); },
+    zoom(d){ if(!ready||muted)return;
+      noise({t0:now(),dur:.16,gain:.035,cut:d>0?700:1500,sweepTo:d>0?1900:520,type:"bandpass",q:2,send:.4}); },
+    quantum(){ if(!ready||muted)return; const t=now();
+      [84,88,91,96].forEach((m,i)=>glock(t+i*.045,m,.05)); },
+    petrova(){ if(!ready||muted)return; tone({freq:88,glide:52,t0:now(),dur:.1,gain:.085,cut:220,rel:.4,send:.35}); },
+    comet(){ if(!ready||muted)return;
+      noise({t0:now(),dur:1.4,gain:.055,cut:2600,sweepTo:420,type:"bandpass",q:1.4,send:.8}); },
+    tuneLock(){ if(!ready||muted)return; const t=now();
+      tone({freq:1046.5,t0:t,dur:.06,gain:.08,rel:.08,cut:4000,send:.4});
+      tone({freq:1318.5,t0:t+.05,dur:.08,gain:.09,rel:.10,cut:4000,send:.4}); },
+    ui(){ if(!ready||muted)return; tone({type:"square",freq:660,t0:now(),dur:.025,gain:.035,rel:.06,send:.2}); }
+  };
+  function setMuted(m){muted=m;if(ready)master.gain.linearRampToValueAtTime(m?0:0.8,now()+.25);if(m)ytMute();else ytUnmute();}
+  return {
+    init,fanfare,titleHit,prologueSwell,startPad,stopPad,flyby,startMap,stopMap,sfx,LEADIN,
+    setMuted,isMuted:()=>muted,isReady:()=>ready,
+    resume(){ if(ctx&&ctx.state==="suspended")ctx.resume(); }
+  };
+})();
+
+/* ============ utils ============ */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const TAU=Math.PI*2;
+const $=s=>document.querySelector(s);
+
+/* ============ starfield ============ */
+const starsCv=$("#stars"),sctx=starsCv.getContext("2d");
+let W=0,H=0,starList=[];
+function sizeStars(){
+  W=starsCv.width=innerWidth;H=starsCv.height=innerHeight;
+  const rnd=mulberry32(1138);starList=[];
+  const n=Math.floor(W*H/3800);
+  for(let i=0;i<n;i++){
+    starList.push({x:rnd()*W,y:rnd()*H,s:rnd()<.85?1:2,tw:rnd()*TAU,sp:.4+rnd()*1.4,
+      c:rnd()<.08?"#9fd8ff":(rnd()<.06?"#ffd9a0":"#e8e4d8")});
+  }
+}
+let hyper=0; // 0..1 hyperspace streak amount during flyby
+function drawStars(t){
+  sctx.fillStyle="#050309";sctx.fillRect(0,0,W,H);
+  if(W && H){
+    const neb1=sctx.createRadialGradient(W*0.22,H*0.32,10,W*0.22,H*0.32,Math.min(W,H)*0.55);
+    neb1.addColorStop(0,"rgba(58,22,88,.09)");
+    neb1.addColorStop(0.5,"rgba(26,12,50,.04)");
+    neb1.addColorStop(1,"rgba(5,3,9,0)");
+    sctx.fillStyle=neb1;sctx.fillRect(0,0,W,H);
+
+    const neb2=sctx.createRadialGradient(W*0.78,H*0.70,10,W*0.78,H*0.70,Math.min(W,H)*0.60);
+    neb2.addColorStop(0,"rgba(16,65,78,.08)");
+    neb2.addColorStop(0.5,"rgba(10,32,46,.03)");
+    neb2.addColorStop(1,"rgba(5,3,9,0)");
+    sctx.fillStyle=neb2;sctx.fillRect(0,0,W,H);
+  }
+  for(const s of starList){
+    const a=.25+.75*Math.abs(Math.sin(t*.0012*s.sp+s.tw));
+    sctx.globalAlpha=a;
+    sctx.fillStyle=s.c;
+    if(hyper>0.02){
+      const len=hyper*46*s.s;
+      sctx.fillRect(s.x,s.y,len,s.s);
+    }else{
+      sctx.fillRect(s.x,s.y,s.s,s.s);
+    }
+  }
+  sctx.globalAlpha=1;
+}
+
+/* ============ pixel planet sprite generator ============ */
+function smoothNoise(rnd,w,h){
+  const lat=[],L=8;
+  for(let y=0;y<=L;y++){lat[y]=[];for(let x=0;x<=L;x++)lat[y][x]=rnd();}
+  const out=new Float32Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const gx=x/w*L,gy=y/h*L,x0=Math.floor(gx),y0=Math.floor(gy);
+    const fx=gx-x0,fy=gy-y0,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);
+    const a=lat[y0][x0],b=lat[y0][x0+1],c=lat[y0+1][x0],d=lat[y0+1][x0+1];
+    out[y*w+x]=a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v;
+  }
+  return out;
+}
+function makePlanetSprite(def){
+  const sz=def.sun?192:96,cv=document.createElement("canvas");
+  cv.width=cv.height=sz;
+  const ctx=cv.getContext("2d");
+  const rnd=mulberry32(def.seed);
+  const cx=sz/2,cy=sz/2,R=def.sun?66:28;
+  const n1=smoothNoise(rnd,sz,sz),n2=smoothNoise(rnd,sz,sz);
+  const img=ctx.createImageData(sz,sz),d=img.data;
+  const pal=def.palette.map(hx=>[parseInt(hx.slice(1,3),16),parseInt(hx.slice(3,5),16),parseInt(hx.slice(5,7),16)]);
+  for(let y=0;y<sz;y++)for(let x=0;x<sz;x++){
+    const dx=x-cx,dy=y-cy,dist=Math.hypot(dx,dy);
+    if(dist>R)continue;
+    let v;
+    if(def.style==="banded"){
+      v=n1[Math.floor(y*0.9)*sz+Math.floor(x*0.18)]*.8+n2[y*sz+x]*.2;
+      v+=Math.sin(y*.45+def.seed)*.12;
+    }else if(def.style==="cracked"){
+      const a=n1[y*sz+x];v=Math.abs(a-.5)<.045?.97:a*.7;
+    }else if(def.style==="sun"){
+      v=n1[y*sz+x]*.44+n2[y*sz+x]*.24+(1-dist/R)*.62;
+    }else{ // terrain
+      v=n1[y*sz+x]*.62+n2[y*sz+x]*.38;
+    }
+    // polar caps
+    if(def.caps && Math.abs(dy)>R*.78) v=1;
+    // craters
+    v=Math.max(0,Math.min(1,v));
+    let idx=Math.min(pal.length-1,Math.floor(v*pal.length));
+    // dithered limb darkening
+    const edge=dist/R;
+    if(edge>.90 && ((x+y)&1)) idx=Math.max(0,idx-1);
+    const c=pal[idx],o=(y*sz+x)*4;
+    d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=255;
+  }
+  // craters punched after
+  if(def.craters){
+    for(let i=0;i<def.craters;i++){
+      const a=rnd()*TAU,r=rnd()*R*.66,px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r,cr=1+rnd()*3;
+      for(let y=-cr;y<=cr;y++)for(let x=-cr;x<=cr;x++){
+        if(x*x+y*y>cr*cr)continue;
+        const X=Math.round(px+x),Y=Math.round(py+y);
+        if(Math.hypot(X-cx,Y-cy)>R-1)continue;
+        const o=(Y*sz+X)*4,c=pal[0];
+        d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];
+      }
+    }
+  }
+  ctx.putImageData(img,0,0);
+  // sun flares / corona spicules
+  if(def.sun){
+    const hi=def.palette[def.palette.length-2]||"#f59e0b";
+    const white="#fff7d6";
+    for(let a=0;a<TAU;a+=.025){
+      const flare=Math.sin(a*11+def.seed)*3.8+Math.cos(a*7)*2.5;
+      if(flare>1.2){
+        ctx.fillStyle=(flare>3.6)?white:hi;
+        const fx=Math.round(cx+Math.cos(a)*(R+flare));
+        const fy=Math.round(cy+Math.sin(a)*(R+flare));
+        ctx.fillRect(fx,fy,2,2);
+      }
+    }
+  }
+  // rings
+  if(def.rings){
+    ctx.fillStyle=def.rings;
+    for(let a=0;a<TAU;a+=.012){
+      const rx=Math.cos(a)*R*1.65,ry=Math.sin(a)*R*.5;
+      if(ry<0 && Math.abs(rx)<R) continue; // behind planet hidden (front pass only top arc visible logic simplified)
+      const X=Math.round(cx+rx),Y=Math.round(cy+ry);
+      if(((X+Y)&1)===0)ctx.fillRect(X,Y,1,1);
+    }
+  }
+  // storms (bright cyclone clusters, e.g. Giant's Deep)
+  if(def.storms){
+    const hi=def.palette[def.palette.length-1];
+    for(let i=0;i<def.storms;i++){
+      const a=rnd()*TAU,r=rnd()*R*.7,px=Math.round(cx+Math.cos(a)*r),py=Math.round(cy+Math.sin(a)*r);
+      ctx.fillStyle=hi;
+      ctx.fillRect(px-1,py,3,1);ctx.fillRect(px,py-1,1,3);
+      ctx.fillStyle="#ffffff";ctx.fillRect(px,py,1,1);
+    }
+  }
+  // hollow core (crust suspended over a black hole)
+  if(def.hollow){
+    ctx.fillStyle="#030208";
+    for(let y=-10;y<=10;y++)for(let x=-10;x<=10;x++){
+      if(x*x+y*y<=100)ctx.fillRect(cx+x,cy+y,1,1);
+    }
+    // event-horizon glow ring
+    ctx.fillStyle=def.palette[def.palette.length-1];
+    for(let a=0;a<TAU;a+=.28){
+      ctx.fillRect(Math.round(cx+Math.cos(a)*8),Math.round(cy+Math.sin(a)*8),1,1);
+    }
+    // the singularity
+    ctx.fillStyle="#ffffff";ctx.fillRect(cx,cy,1,1);
+  }
+  return {cv,R};
+}
+// dynamic terminator shading toward sun
+function drawShaded(ctx,sp,x,y,scale,lightAngle,isSun){
+  const sz=(sp.cv.width||96)*scale;
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(sp.cv,x-sz/2,y-sz/2,sz,sz);
+  if(isSun)return;
+  const R=sp.R*scale,lx=Math.cos(lightAngle),ly=Math.sin(lightAngle);
+  ctx.save();
+  ctx.beginPath();ctx.arc(x,y,R+0.5,0,TAU);ctx.clip();
+  ctx.fillStyle="rgba(4,2,10,0.62)";
+  const px=Math.max(2,Math.floor(scale*1.5));
+  for(let yy=-R;yy<R;yy+=px)for(let xx=-R;xx<R;xx+=px){
+    const dd=Math.hypot(xx,yy);if(dd>R)continue;
+    const dot=(xx/R)*lx+(yy/R)*ly;
+    if(dot<-0.18) ctx.fillRect(x+xx,y+yy,px,px);
+    else if(dot<0.02 && ((Math.round(xx/px)+Math.round(yy/px))&1)) ctx.fillRect(x+xx,y+yy,px,px);
+  }
+  ctx.restore();
+}
+
+/* ============ system data : the Outer Wilds system (fan chart) ============ */
+const SUN={name:"THE SUN",cls:"end-of-life star",seed:9001,style:"sun",sun:true,
+  palette:["#7a1f0a","#c2410c","#f59e0b","#fcd34d","#fff7d6"],
+  stats:{"AGE":"very old","CLASS":"red-giant track","STATUS":"swelling","FORECAST":"supernova, soon"},
+  lore:"It has burned faithfully for a very long time and is nearly done. Lately it runs red and restless, and every instrument agrees it will not go quietly. The black ship skimming its surface insists the supernova was already on the schedule."};
+
+/* main orbital slots, innermost -> outermost (orbit radii are auto-spaced) */
+const PLANETS=[
+ {twins:true,name:"THE HOURGLASS TWINS",cls:"twin planets",size:1.05,speed:.10,
+  a:{seed:7,style:"cracked",palette:["#2a0e08","#5c2210","#9c4419","#d97a2e","#f7c87b"]},   // Ember Twin
+  b:{seed:12,style:"terrain",palette:["#3a2c20","#6b5237","#9c7a4e","#c7a86e","#ead9a8"]}, // Ash Twin
+  stats:{"SEPARATION":"indecent","SAND FLOW":"Ash → Ember","CAVES":"filling","SHARED SKY":"yes"},
+  lore:"Two desert worlds locked so close they trade weather. A column of sand pours endlessly from Ash Twin onto Ember Twin, burying canyons on one and uncovering ruins on the other. Anything you want from either, you want it quickly."},
+ {name:"TIMBER HEARTH",cls:"homeworld",seed:33,style:"terrain",size:1.7,speed:.065,
+  palette:["#0d2c4a","#1f5a2e","#37804a","#62b06a","#cfe6b8"],
+  stats:{"GRAVITY":"comfortable","GEYSERS":"active","SMELLS LIKE":"pine + fuel","MOON":"the Attlerock"},
+  lore:"A green, geyser-pocked world with a wooden launch tower, a crater full of rocket parts, and a deep respect for marshmallows. Every traveler in the system learned to fly here, usually the hard way.",
+  moons:[{name:"THE ATTLEROCK",cls:"cratered moon",seed:41,style:"terrain",craters:7,size:.75,speed:.5,
+    palette:["#2c2c34","#4a4a55","#6e6e7c","#9a9aa8","#cfcfdb"],
+    stats:{"VIEW":"excellent","CRATERS":"plenty","LOOKOUT":"staffed","GRAVITY":"barely"},
+    lore:"Timber Hearth's faithful grey companion. The whole system is visible from its lookout, which is exactly why somebody put a lookout there."}]},
+ {name:"BRITTLE HOLLOW",cls:"hollow world",seed:64,style:"cracked",size:1.9,speed:.042,hollow:true,
+  palette:["#14101f","#2a2240","#403463","#5d4d8f","#8f82c4"],
+  stats:{"CORE":"black hole","CRUST":"actively failing","UNDERSIDE":"settled (once)","EXITS":"one, dramatic"},
+  lore:"A crust suspended over its own black hole. The surface gives way piece by piece, and everything that falls through comes out somewhere very far away. The safest ground here is the ceiling.",
+  moons:[{name:"HOLLOW'S LANTERN",cls:"volcanic moon",seed:71,style:"cracked",size:.80,speed:.42,
+    palette:["#240a06","#5c1408","#a3300d","#e2581f","#ffc14d"],
+    stats:{"MOOD":"eruptive","OUTPUT":"meteors","AIM":"unfortunately good","GLOW":"visible system-wide"},
+    lore:"A furious little moon that spends its days lobbing burning rock at Brittle Hollow's crust, which explains a great deal about Brittle Hollow."}]},
+ {name:"GIANT'S DEEP",cls:"ocean giant",seed:80,style:"banded",size:2.5,speed:.026,storms:6,
+  palette:["#06281e","#0b4a32","#13724a","#2aa56a","#9fe2b8"],
+  stats:{"CYCLONES":"many","ISLANDS":"airborne (briefly)","CURRENT":"impassable*","CORE":"off-limits"},
+  lore:"An ocean wrapped in permanent storm, where cyclones strong enough to throw whole islands into the sky are considered weather. Something heavy and patient waits below the current. The asterisk has never been resolved."},
+ {name:"DARK BRAMBLE",cls:"shattered world",seed:97,style:"cracked",size:2.0,speed:.017,
+  palette:["#1a2326","#2e4046","#46626a","#6e949c","#c2e8e2"],
+  stats:{"STATUS":"shattered","INTERIOR":"larger than exterior","FOG":"thick","ADVICE":"cut your engines"},
+  lore:"The husk of an ice planet, split open and overgrown from within by something pale and enormous. The fog inside holds soft lights, and not all of them are lures. Most of them are lures."}
+];
+
+/* the comet */
+const INTERLOPER={name:"THE INTERLOPER",cls:"comet",seed:113,style:"cracked",size:.80,
+  palette:["#38485c","#647d96","#94b8d4","#d6ecf8","#ffffff"],
+  stats:{"TYPE":"frozen visitor","ORBIT":"eccentric","CARGO":"do not thaw","TAIL":"ice + dust"},
+  lore:"A frozen newcomer on a long, lonely ellipse, brightest when it grazes the Sun. Its core carries a sealed cargo that the old surveys marked with one word, underlined twice: don't."};
+
+/* the moon that moves when nobody is looking */
+const QUANTUM={name:"THE QUANTUM MOON",cls:"wandering moon",seed:130,style:"terrain",size:.88,
+  palette:["#241f33","#3c3654","#585174","#7d7699","#b3adc9"],
+  stats:{"POSITION":"varies","LOCATIONS":"several","RULE":"observed = stays","PHOTOGRAPHY":"recommended"},
+  lore:"A pale moon that is only ever where you last saw it. Whenever nothing is watching, it slips away to orbit a different world entirely. Keep your cursor on it and it will politely hold still."};
+
+/* ============ astrophage harvester (sun-skimmer) ============ */
+const HARVESTER={
+  name:"THE BEETLE",cls:"astrophage harvester",
+  stats:{"FUEL":"astrophage","HULL TEMP":"96.415 °C","CARGO":"2.1e6 kg","CREW":"1 — asleep"},
+  lore:"A black-hulled skimmer riding the corona, drinking light straight off the Sun's surface. Its hull crawls with a single-celled stowaway that eats starlight and breathes it back as thrust. The survey finally has its answer: this is why the sun is dying. The pilot logged it, hesitated, and did not file a complaint."
+};
+function makeHarvesterSprite(){
+  const cv=document.createElement("canvas");cv.width=cv.height=96;
+  const ctx=cv.getContext("2d");
+  const sc=3,ox=Math.floor((96-SHIP[0].length*sc)/2),oy=Math.floor((96-SHIP.length*sc)/2);
+  for(let r=0;r<SHIP.length;r++)for(let c=0;c<SHIP[r].length;c++){
+    const ch=SHIP[r][c];if(ch===".")continue;
+    ctx.fillStyle=SHIPC[ch];
+    ctx.fillRect(ox+(SHIP[r].length-1-c)*sc, oy+r*sc, sc,sc);
+  }
+  // astrophage growth on the hull: near-black cells with a faint crimson glint
+  const rnd=mulberry32(424242);
+  for(let i=0;i<46;i++){
+    const c=Math.floor(rnd()*SHIP[0].length),r=Math.floor(rnd()*SHIP.length);
+    if(SHIP[r][c]===".")continue;
+    ctx.fillStyle=rnd()<.78?"#160505":"#5c0a0a";
+    ctx.fillRect(ox+(SHIP[r].length-1-c)*sc, oy+r*sc, sc,sc);
+  }
+  return {cv,R:16};
+}
+
+
+const phases=["prologue","crawlPhase","flyby","mapPhase"];
+let titleT=0;
+let cur=-1,SPEED=1;
+const speedBtn=$("#speedBtn");
+function applySpeed(){document.getAnimations().forEach(a=>{a.playbackRate=SPEED;});}
+speedBtn.addEventListener("click",()=>{
+  SPEED=SPEED===1?2:SPEED===2?4:1;
+  speedBtn.textContent=(SPEED===1?"▸":SPEED===2?"▸▸":"▸▸▸")+" "+SPEED+"x";
+  applySpeed();
+});
+function restartAnim(el){el.style.animation="none";void el.offsetWidth;el.style.animation="";}
+
+/* With YouTube providing music, there is no fanfare to sync against. We still
+   hold on black briefly so the prologue text can fade, then proceed to the title. */
+let waitingForAudio=false,waitTimer=0,introWaived=false;
+function beginTitle(){
+  if(cur!==0)return;
+  if(!audioArmed&&!introWaived){
+    waitingForAudio=true;
+    $("#soundHint").classList.add("show");
+    clearTimeout(waitTimer);
+    waitTimer=setTimeout(()=>{                 // no click? carry on silently
+      introWaived=true;waitingForAudio=false;
+      $("#soundHint").classList.remove("show");
+      beginTitle();
+    },9000);
+    return;
+  }
+  waitingForAudio=false;clearTimeout(waitTimer);
+  $("#soundHint").classList.remove("show");
+  const black=1150/SPEED;
+  setTimeout(()=>{if(cur===0)show(1);},black);
+}
+/* Measure the crawl and set its end position so the animation finishes the moment
+   the last line dissolves at the horizon — no empty scrolling afterwards. */
+function sizeCrawl(){
+  const wrap=$("#crawlWrap"),txt=$("#crawlText");
+  const wh=wrap.offsetHeight||1,th=txt.scrollHeight||1;
+  const end=16-(th/wh*100)-6;           // 16% = where the mask has fully faded it out
+  txt.style.setProperty("--crawl-end",end.toFixed(1)+"%");
+}
+function show(i){
+  phases.forEach((id,k)=>$("#"+id).classList.toggle("on",k===i));
+  cur=i;
+  $("#introCtl").classList.toggle("show",i<3);
+  AUDIO.resume();
+  if(i===0){
+    // No music under the blue text — the silence is what makes the hit land.
+    AUDIO.stopMap();AUDIO.stopPad();
+    if(audioArmed)AUDIO.prologueSwell(4.6/SPEED);
+    const p=$("#prologue p");
+    restartAnim(p);
+    p.addEventListener("animationend",()=>{
+      if(cur!==0)return;
+      $("#prologue").classList.remove("on");     // hold on black
+      beginTitle();
+    },{once:true});
+  }
+  if(i===1){
+    titleT=performance.now();
+    restartAnim($("#bigTitle"));
+    const c=$("#crawlText");
+    sizeCrawl();
+    restartAnim(c);
+    c.addEventListener("animationend",()=>{if(cur===1)show(2);},{once:true});
+  }
+  if(i===2){AUDIO.stopPad();startFlyby();}
+  if(i===3){AUDIO.stopPad();if(audioArmed)AUDIO.startMap();startMap();}
+  requestAnimationFrame(applySpeed); // catch freshly-started CSS animations
+}
+$("#skipBtn").addEventListener("click",()=>{flybyRun=false;hyper=0;show(3);});
+addEventListener("keydown",e=>{if(e.key==="Escape"){ if($("#panel").classList.contains("open")) closePanel(); else if(cur<3){flybyRun=false;hyper=0;show(3);} }});
+
+/* ============ flyby ============ */
+const fCv=$("#flybyCanvas"),fctx=fCv.getContext("2d");
+/* side-profile sprite (kept for the harvester on the map) */
+const SHIP=[
+"..........1111..........",
+"........11233211........",
+"......112334433211......",
+"..11122334455443322111..",
+"1122334455667766554433211",
+"..11122334455443322111..",
+"......112334433211......",
+"........11233211........",
+"..........1111.........."
+];
+const SHIPC={1:"#39435f",2:"#5a6a8f",3:"#8fa2c4",4:"#c8d4e8",5:"#e8e4d8",6:"#5bd0e8",7:"#ffffff"};
+
+/* rear view of the Kestrel: X-foil silhouette, drawn procedurally on a cell grid.
+   Returns engine screen positions so the flyby can spawn exhaust particles. */
+function drawRearShip(ctx,x,y,cell,t){
+  const px=(gx,gy,c,w=1,h=1)=>{ctx.fillStyle=c;ctx.fillRect(x+(gx-13)*cell,y+(gy-9)*cell,cell*w,cell*h);};
+  const HULL_D="#2e3650",HULL="#4b587c",HULL_L="#7f8fb8",HULL_XL="#bcc8e2",WHT="#e8e4d8";
+  // --- four wings in a shallow X, built from stepped diagonal strips ---
+  for(let i=0;i<10;i++){
+    const f=i/9;
+    // upper pair
+    px(11-i,7.6-f*2.6,HULL,1.4,1);  px(14.6+i,7.6-f*2.6,HULL,1.4,1);
+    px(11-i,8.4-f*2.6,HULL_D,1.4,.7);px(14.6+i,8.4-f*2.6,HULL_D,1.4,.7);
+    // lower pair
+    px(11-i,10.4+f*2.6,HULL,1.4,1); px(14.6+i,10.4+f*2.6,HULL,1.4,1);
+    px(11-i,10.1+f*2.6,HULL_L,1.4,.5);px(14.6+i,10.1+f*2.6,HULL_L,1.4,.5);
+  }
+  // wing tip plates + laser-cannon stubs
+  for(const [gx,gy] of [[1.4,4.8],[24,4.8],[1.4,13.2],[24,13.2]]){
+    px(gx-.2,gy-.6,HULL_L,1.4,2.0);
+    px(gx+.2,gy-1.6,HULL_XL,.6,1.2); // cannon barrel poking toward camera
+  }
+  // --- central fuselage ---
+  px(12,5.8,HULL_D,2,1);            // spine tip
+  px(11.5,6.6,HULL,3,2);            // upper hull
+  px(11,8.4,HULL_L,4,2.2);          // mid hull
+  px(11.5,10.6,HULL,3,1.6);         // lower hull
+  px(12,12.2,HULL_D,2,.8);          // keel
+  px(11.2,8.6,HULL_XL,.6,1.6);px(14.2,8.6,HULL_XL,.6,1.6); // side highlights
+  // cockpit canopy, glowing faintly
+  const ck=.55+.25*Math.sin(t*6);
+  px(12.1,6.9,"rgba(91,208,232,"+ck.toFixed(2)+")",1.8,1.1);
+  px(12.4,7.1,"#ffffff",.5,.4);
+  // hull greebles / panel seams
+  px(11.3,9.6,HULL_D,3.4,.25);
+  px(11.3,8.1,HULL_D,3.4,.25);
+  // --- four engines at the wing roots ---
+  const eng=[[9.6,7.3],[16.4,7.3],[9.6,11.2],[16.4,11.2]];
+  const flick=Math.random()<.5;
+  const engines=[];
+  for(const [ex,ey] of eng){
+    px(ex-1.1,ey-1.1,HULL_D,2.2,2.2);          // nozzle housing
+    px(ex-.8,ey-.8,"#141a2e",1.6,1.6);          // nozzle interior
+    ctx.fillStyle=flick?"#ffffff":"#ff8f6b";    // thruster core
+    ctx.fillRect(x+(ex-13-.55)*cell,y+(ey-9-.55)*cell,cell*1.1,cell*1.1);
+    const gx2=x+(ex-13)*cell,gy2=y+(ey-9)*cell;
+    const g=ctx.createRadialGradient(gx2,gy2,0,gx2,gy2,cell*4.2);
+    g.addColorStop(0,"rgba(255,143,107,"+(flick?.75:.5)+")");g.addColorStop(1,"rgba(255,90,60,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(gx2,gy2,cell*4.2,0,TAU);ctx.fill();
+    engines.push({x:gx2,y:gy2});
+  }
+  // --- blinking nav lights: red port / green starboard ---
+  const blink=(Math.floor(t*2.4)%2)===0;
+  if(blink){
+    px(1.2,4.6,"#ff4040",.7,.7);  px(1.2,13.0,"#ff4040",.7,.7);
+  }else{
+    px(24.6,4.6,"#52ff7a",.7,.7); px(24.6,13.0,"#52ff7a",.7,.7);
+  }
+  return engines;
+}
+let flybyRun=false;
+function startFlyby(){
+  fCv.width=innerWidth;fCv.height=innerHeight;
+  flybyRun=true;
+  const dur=2600;let p=0,prev=performance.now();
+  AUDIO.flyby(dur/1000/SPEED);
+  const exhaust=[]; // particles streaming back toward the camera
+  function frame(t){
+    if(!flybyRun)return;
+    const dt=Math.min(60,t-prev);prev=t;
+    const dts=dt/1000;
+    p=Math.min(1,p+dt/dur*SPEED);
+    hyper=Math.max(0,(1-p))*.45;
+    fctx.clearRect(0,0,fCv.width,fCv.height);
+    const W2=fCv.width,H2=fCv.height;
+    const ease=1-Math.pow(1-p,2.2);
+    const s=16*Math.pow(1-ease,1.7)+.5;
+    const cell=s*Math.max(2.0,W2/300);
+    const shake=(1-ease)*cell*.16;
+    const x=W2*.5+Math.sin(p*4.6)*W2*.06*(1-ease)+(Math.random()-.5)*shake;
+    const y=H2*1.04-ease*H2*.62+(Math.random()-.5)*shake;
+    // exhaust particles: spawned at the engines, they fall toward the viewer
+    // (drift down-screen and swell) before fading into the dark
+    fctx.globalCompositeOperation="lighter";
+    for(let i=exhaust.length-1;i>=0;i--){
+      const ex=exhaust[i];
+      ex.life+=dts*SPEED;
+      if(ex.life>=ex.max){exhaust.splice(i,1);continue;}
+      const f=ex.life/ex.max;
+      ex.x+=ex.vx*dts*SPEED;ex.y+=ex.vy*dts*SPEED;
+      ex.vy+=420*dts*SPEED;            // accelerate toward the camera (down-screen)
+      const sz=ex.s*(1+f*3);
+      fctx.fillStyle="rgba(255,"+Math.floor(150-90*f)+","+Math.floor(90-60*f)+","+(0.5*(1-f)).toFixed(3)+")";
+      fctx.fillRect(ex.x-sz/2,ex.y-sz/2,sz,sz);
+    }
+    fctx.globalCompositeOperation="source-over";
+    // gentle banking roll that settles as the ship steadies
+    fctx.save();
+    fctx.translate(x,y);
+    fctx.rotate(Math.sin(p*5.5)*.07*(1-ease));
+    fctx.translate(-x,-y);
+    const engines=drawRearShip(fctx,x,y,cell,t/1000);
+    fctx.restore();
+    if(!document.hidden)for(const e of engines){
+      if(Math.random()<.8)exhaust.push({x:e.x+(Math.random()-.5)*cell,y:e.y+(Math.random()-.5)*cell,
+        vx:(Math.random()-.5)*60,vy:60+Math.random()*90,s:Math.max(2,cell*.5),life:0,max:.5+Math.random()*.5});
+    }
+    // distance haze into the map
+    if(p>.75){
+      fctx.fillStyle="rgba(5,3,9,"+((p-.75)/.25*.85).toFixed(3)+")";
+      fctx.fillRect(0,0,W2,H2);
+    }
+    if(p>=1){flybyRun=false;hyper=0;show(3);return;}
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ============ map ============ */
+const mCv=$("#mapCanvas"),mctx=mCv.getContext("2d");
+const tooltip=$("#tooltip");
+let bodies=[],comet=null,qmoon=null,jumpFx=null;
+let mapRun=false,paused=false,selected=null,hovered=null,simT=Math.random()*1000,phage=[],lastT=0;
+let hits=[]; // clickable {x,y,r,obj} in WORLD coords, rebuilt each frame
+let lastPetrova=-1,lastPeri=-1;
+
+/* ============ SIGNALSCOPE STATE ============ */
+let sigActive=false, sigMouse={x:innerWidth/2,y:innerHeight/2}, sigTarget=null, sigWavePhase=0;
+const sigWaveCanvas=document.getElementById("sigWaveCanvas");
+const sigWaveCtx=sigWaveCanvas?sigWaveCanvas.getContext("2d"):null;
+
+/* Authentic frequency tuning per celestial body (Outer Wilds official isolated tracks) */
+const FREQ_MAP={
+  "BRITTLE HOLLOW": {
+    traveler: "Riebeck",
+    instrument: "Banjo Solo",
+    title: "Riebeck's Banjo (Brittle Hollow)",
+    vid: "9Kfv1WeoAvk",
+    freq: "OUTER WILDS VENTURES [102.4 MHz]"
+  },
+  "GIANT'S DEEP": {
+    traveler: "Gabbro",
+    instrument: "Flute Solo",
+    title: "Gabbro's Flute (Giant's Deep)",
+    vid: "6mUxMzE3Cz0",
+    freq: "OUTER WILDS VENTURES [102.4 MHz]"
+  },
+  "DARK BRAMBLE": {
+    traveler: "Feldspar",
+    instrument: "Harmonica Solo",
+    title: "Feldspar's Harmonica (Dark Bramble)",
+    vid: "X8cCcAUmymo",
+    freq: "OUTER WILDS VENTURES [102.4 MHz]"
+  },
+  "THE ATTLEROCK": {
+    traveler: "Esker",
+    instrument: "Whistling Solo",
+    title: "Esker's Whistling (The Attlerock)",
+    vid: "aFp_bjUE_xM",
+    freq: "OUTER WILDS VENTURES [102.4 MHz]"
+  },
+  "HOURGLASS TWINS": {
+    traveler: "Chert",
+    instrument: "Drums Solo",
+    title: "Chert's Drums (Hourglass Twins)",
+    vid: "gue4rNBbBAI",
+    freq: "OUTER WILDS VENTURES [102.4 MHz]"
+  },
+  "TIMBER HEARTH": {
+    traveler: "Hearthian Village",
+    instrument: "Acoustic Guitar",
+    title: "Timber Hearth (Andrew Prahlow)",
+    vid: "SPa8bPqQfmo",
+    freq: "OUTER WILDS VENTURES [102.4 MHz]"
+  },
+  "THE QUANTUM MOON": {
+    traveler: "Solanum",
+    instrument: "Nomai Piano Solo",
+    title: "Solanum's Piano (Quantum Moon)",
+    vid: "X9J42W2pVs8",
+    freq: "QUANTUM FLUCTUATIONS [???]"
+  },
+  "THE BEETLE": {
+    traveler: "Grace & Rocky",
+    instrument: "Petrova IR Frequency",
+    title: "Amaze Amaze Amaze (Life on Erid)",
+    vid: "RxAu1VsaGtc",
+    freq: "ASTROPHAGE IR [516.6 THz]"
+  },
+  "THE INTERLOPER": {
+    traveler: "Nomai Shuttle Remains",
+    instrument: "Cryo-Resonance",
+    title: "Space Ambient (The Interloper)",
+    vid: "uutIp8FsPrk",
+    freq: "DEEP SPACE ECHO [44.1 kHz]"
+  },
+  "THE SUN": {
+    traveler: "Sun Station",
+    instrument: "Solar Harmonics",
+    title: "The Sun Station (Andrew Prahlow)",
+    vid: "bcEoHjGdbbY",
+    freq: "SOLAR HARMONICS [8.2 MHz]"
+  },
+  "HOLLOW'S LANTERN": {
+    traveler: "Volcanic Caldera",
+    instrument: "Magma Resonance",
+    title: "Riebeck's Banjo (Brittle Hollow Orbit)",
+    vid: "9Kfv1WeoAvk",
+    freq: "OUTER WILDS VENTURES [102.4 MHz]"
+  }
+};
+
+function toggleSignalscope(){
+  sigActive=!sigActive;
+  const ov=document.getElementById("signalOverlay");
+  const btn=document.getElementById("signalBtn");
+  if(sigActive){
+    if(ov)ov.classList.add("active");
+    if(btn){btn.style.background="#143c44";btn.style.color="#7ef4fc";}
+    AUDIO.sfx.zoom(1);
+  }else{
+    if(ov)ov.classList.remove("active");
+    if(btn){btn.style.background="";btn.style.color="";}
+    AUDIO.sfx.zoom(-1);
+    sigTarget=null;
+    restorePlaylist();
+  }
+}
+
+function updateSignalscope(dt){
+  if(!sigActive)return;
+  sigWavePhase+=dt*8;
+  const ret=document.getElementById("sigReticle");
+  if(ret){
+    ret.style.left=sigMouse.x+"px";
+    ret.style.top=sigMouse.y+"px";
+  }
+
+  let closest=null,minDist=Infinity;
+  const c=worldCentre();
+  for(const b of bodies){
+    if(!b._pos)continue;
+    const sx=(b._pos.x-(cam.x+c.x))*cam.z+c.x;
+    const sy=(b._pos.y-(cam.y+c.y))*cam.z+c.y;
+    const d=Math.hypot(sigMouse.x-sx,sigMouse.y-sy);
+    if(d<minDist){minDist=d;closest=b;}
+    if(b.moons)for(const m of b.moons){
+      if(!m._pos)continue;
+      const msx=(m._pos.x-(cam.x+c.x))*cam.z+c.x;
+      const msy=(m._pos.y-(cam.y+c.y))*cam.z+c.y;
+      const md=Math.hypot(sigMouse.x-msx,sigMouse.y-msy);
+      if(md<minDist){minDist=md;closest=m;}
+    }
+  }
+  if(qmoon&&qmoon._pos){
+    const qsx=(qmoon._pos.x-(cam.x+c.x))*cam.z+c.x;
+    const qsy=(qmoon._pos.y-(cam.y+c.y))*cam.z+c.y;
+    const qd=Math.hypot(sigMouse.x-qsx,sigMouse.y-qsy);
+    if(qd<minDist){minDist=qd;closest=qmoon;}
+  }
+  if(comet&&comet._pos){
+    const csx=(comet._pos.x-(cam.x+c.x))*cam.z+c.x;
+    const csy=(comet._pos.y-(cam.y+c.y))*cam.z+c.y;
+    const cd=Math.hypot(sigMouse.x-csx,sigMouse.y-csy);
+    if(cd<minDist){minDist=cd;closest=comet;}
+  }
+
+  const strength=Math.max(0,Math.min(100,Math.round(100-(minDist/2.2))));
+  const fill=document.getElementById("sigMeterFill");
+  const dbEl=document.getElementById("sigDb");
+  const statEl=document.getElementById("sigStatus");
+  const freqEl=document.getElementById("sigFreqName");
+  const subEl=document.getElementById("sigSubtext");
+
+  if(fill)fill.style.width=strength+"%";
+  if(dbEl)dbEl.textContent=strength>0?`-${Math.round(60*(1-strength/100))} dB`:"-INF dB";
+
+  const name=closest&&closest.def?closest.def.name:"";
+  const info=FREQ_MAP[name];
+
+  if(strength>65&&info){
+    if(ret)ret.classList.add("locked");
+    if(freqEl)freqEl.textContent=info.freq;
+    if(statEl)statEl.innerHTML=`<span style="color:#ffd700">★ SIGNAL LOCKED:</span> ${name}`;
+    if(subEl)subEl.textContent=`TRAVELER: ${info.traveler.toUpperCase()} · ${info.instrument.toUpperCase()}`;
+    if(sigTarget!==name){
+      sigTarget=name;
+      AUDIO.sfx.tuneLock();
+      playSoloTrack(info.vid,info.title);
+    }
+  }else{
+    if(ret)ret.classList.remove("locked");
+    if(strength>25&&info){
+      if(statEl)statEl.textContent=`DETECTING FAINT SIGNAL... (${strength}%)`;
+      if(subEl)subEl.textContent=`APPROACHING: ${info.traveler.toUpperCase()} (${info.instrument.toUpperCase()})`;
+    }else{
+      if(statEl)statEl.textContent=`SCANNING SPACE FOR FREQUENCIES...`;
+      if(subEl)subEl.textContent=`POINT RETICLE AT A CELESTIAL BODY TO TUNE IN`;
+      if(sigTarget!==null){
+        sigTarget=null;
+        restorePlaylist();
+      }
+    }
+  }
+
+  if(sigWaveCtx&&sigWaveCanvas){
+    const w=sigWaveCanvas.width,h=sigWaveCanvas.height;
+    sigWaveCtx.fillStyle="rgba(3,16,13,0.3)";
+    sigWaveCtx.fillRect(0,0,w,h);
+    sigWaveCtx.strokeStyle=strength>65?"#5bd0e8":(strength>25?"#2a7588":"#13404a");
+    sigWaveCtx.lineWidth=2;
+    sigWaveCtx.beginPath();
+    const amp=(strength/100)*(h*0.38)+2;
+    const freq=strength>65?0.08:0.04;
+    for(let x=0;x<w;x++){
+      const noise=(Math.random()-0.5)*(1-strength/100)*8;
+      const y=h/2+Math.sin(x*freq+sigWavePhase)*amp+noise;
+      if(x===0)sigWaveCtx.moveTo(x,y);else sigWaveCtx.lineTo(x,y);
+    }
+    sigWaveCtx.stroke();
+  }
+}
+
+
+
+/* ============ PLANETARY WEATHER & VOLCANO STATE ============ */
+let lanternMeteors=[];
+let lastMeteorSpawn=0;
+let cyclones=[
+  {lat:0.18,lon:0.0,speed:0.012,size:8},
+  {lat:-0.28,lon:2.1,speed:0.016,size:9},
+  {lat:0.38,lon:4.2,speed:0.010,size:7}
+];
+
+function updateVolcano(dt){
+  const brittle=bodies.find(b=>b.def&&b.def.name==="BRITTLE HOLLOW");
+  if(!brittle||!brittle._pos)return;
+  const lantern=brittle.moons?brittle.moons.find(m=>m.def&&m.def.name==="HOLLOW'S LANTERN"):null;
+  if(!lantern||!lantern._pos)return;
+
+  if(simT-lastMeteorSpawn>2.8){
+    lastMeteorSpawn=simT;
+    const dx=brittle._pos.x-lantern._pos.x;
+    const dy=brittle._pos.y-lantern._pos.y;
+    const dist=Math.hypot(dx,dy);
+    const spd=75*sizeK;
+    const perpX=-dy/dist,perpY=dx/dist;
+    lanternMeteors.push({
+      x:lantern._pos.x,
+      y:lantern._pos.y,
+      vx:(dx/dist)*spd+perpX*(Math.random()-0.5)*18*sizeK,
+      vy:(dy/dist)*spd+perpY*(Math.random()-0.5)*18*sizeK,
+      life:0,
+      maxLife:dist/spd,
+      tail:[]
+    });
+  }
+
+  for(let i=lanternMeteors.length-1;i>=0;i--){
+    const m=lanternMeteors[i];
+    m.life+=dt;
+    m.x+=m.vx*dt;
+    m.y+=m.vy*dt;
+    m.tail.push({x:m.x,y:m.y,life:0});
+
+    for(let j=m.tail.length-1;j>=0;j--){
+      const tl=m.tail[j];
+      tl.life+=dt;
+      if(tl.life>0.40){m.tail.splice(j,1);continue;}
+      const f=1-(tl.life/0.40);
+      const sz=Math.max(1.5,4*f*sizeK);
+      mctx.fillStyle=`rgba(${Math.floor(255*f)},${Math.floor(80*f)},20,${(f*0.8).toFixed(2)})`;
+      mctx.fillRect(tl.x-sz/2,tl.y-sz/2,sz,sz);
+    }
+
+    const g=mctx.createRadialGradient(m.x,m.y,0,m.x,m.y,5*sizeK);
+    g.addColorStop(0,"#ffffff");
+    g.addColorStop(0.3,"#ffd700");
+    g.addColorStop(0.7,"#ff4500");
+    g.addColorStop(1,"rgba(255,40,0,0)");
+    mctx.fillStyle=g;
+    mctx.beginPath();
+    mctx.arc(m.x,m.y,5*sizeK,0,TAU);
+    mctx.fill();
+
+    const hitDist=Math.hypot(m.x-brittle._pos.x,m.y-brittle._pos.y);
+    if(hitDist<=(brittle._r||25)||m.life>=m.maxLife){
+      for(let k=0;k<8;k++){
+        const ang=Math.random()*TAU;
+        const spd=(20+Math.random()*45)*sizeK;
+        phage.push({
+          x:m.x,y:m.y,
+          vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+          life:0,max:0.5+Math.random()*0.4,
+          col:Math.random()<0.5?"#ffd700":"#ff4500",
+          sz:2*sizeK
+        });
+      }
+      lanternMeteors.splice(i,1);
+    }
+  }
+}
+
+function drawCyclones(ctx,gdPos,gdR,dt){
+  for(const cyc of cyclones){
+    cyc.lon+=cyc.speed*dt;
+    const cosLon=Math.cos(cyc.lon);
+    if(cosLon<-0.25)continue;
+    const x=gdPos.x+cosLon*gdR*0.82;
+    const y=gdPos.y+cyc.lat*gdR*0.82;
+    const r=cyc.size*sizeK;
+
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(simT*1.8);
+    ctx.strokeStyle="rgba(220,255,240,0.65)";
+    ctx.lineWidth=1.5;
+    for(let a=0;a<3;a++){
+      ctx.beginPath();
+      ctx.rotate(TAU/3);
+      for(let step=0;step<14;step++){
+        const th=step*0.28;
+        const rad=(step/14)*r;
+        const px=Math.cos(th)*rad,py=Math.sin(th)*rad;
+        if(step===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+    }
+    ctx.fillStyle="rgba(8,42,32,0.88)";
+    ctx.beginPath();
+    ctx.arc(0,0,r*0.25,0,TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawAtmosphereAndShadow(ctx,x,y,R,colGlow,cx,cy){
+  const sunAng=Math.atan2(y-cy,x-cx);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x,y,R,0,TAU);
+  ctx.clip();
+
+  const nightG=ctx.createRadialGradient(
+    x-Math.cos(sunAng)*R*0.4,
+    y-Math.sin(sunAng)*R*0.4,
+    R*0.15,
+    x+Math.cos(sunAng)*R*0.35,
+    y+Math.sin(sunAng)*R*0.35,
+    R*1.1
+  );
+  nightG.addColorStop(0,"rgba(0,0,0,0)");
+  nightG.addColorStop(0.45,"rgba(0,0,0,0.15)");
+  nightG.addColorStop(0.85,"rgba(2,3,8,0.70)");
+  nightG.addColorStop(1,"rgba(0,0,0,0.90)");
+  ctx.fillStyle=nightG;
+  ctx.fillRect(x-R,y-R,R*2,R*2);
+  ctx.restore();
+
+  if(colGlow){
+    ctx.save();
+    ctx.strokeStyle=colGlow;
+    ctx.lineWidth=Math.max(1.5,3*sizeK);
+    ctx.beginPath();
+    ctx.arc(x,y,R+1,sunAng-Math.PI/2,sunAng+Math.PI/2,true);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/* ---------- camera: zoom + pan, with snap-to-nearest-planet ---------- */
+const cam={z:1,tz:1,x:0,y:0,tx:0,ty:0};   // x/y = world offset of screen centre
+let followObj=null;                        // body the camera is locked onto (null = free)
+let dragging=false,dragMoved=false,dragPX=0,dragPY=0;
+const ZMIN=0.7,ZMAX=13;
+const clampZ=z=>Math.max(ZMIN,Math.min(ZMAX,z));
+function worldCentre(){return{x:mCv.width/2,y:mCv.height/2};}
+function toWorld(sx,sy){
+  const c=worldCentre();
+  return{x:(sx-c.x)/cam.z+cam.x+c.x, y:(sy-c.y)/cam.z+cam.y+c.y};
+}
+function applyCam(ctx){
+  const c=worldCentre();
+  ctx.setTransform(cam.z,0,0,cam.z, c.x-(cam.x+c.x)*cam.z, c.y-(cam.y+c.y)*cam.z);
+}
+/* nearest clickable body to a screen point, within a generous grab radius */
+function nearestTo(sx,sy){
+  const w=toWorld(sx,sy);
+  let best=null,bd=Infinity;
+  for(const h of hits){
+    const d=Math.hypot(w.x-h.x,w.y-h.y);
+    if(d<bd){bd=d;best=h;}
+  }
+  if(!best)return null;
+  const reach=best.r+minDim()*0.16/cam.z;   // in world units, so it feels constant on screen
+  return bd<=reach?best.obj:null;
+}
+/* Zoom toward the cursor. If a body is near the cursor, lock onto it and let the
+   follow logic keep it centred; otherwise keep the point under the cursor fixed. */
+let lastZoomSfx=0;
+function zoomAt(sx,sy,factor,allowSnap){
+  const prevZ=cam.tz;
+  cam.tz=clampZ(cam.tz*factor);
+  if(cam.tz===prevZ)return;
+  if(performance.now()-lastZoomSfx>160){lastZoomSfx=performance.now();AUDIO.sfx.zoom(factor>1?1:-1);}
+  if(cam.tz<=1.02){followObj=null;cam.tx=0;cam.ty=0;return;}   // zoomed out = whole system
+  if(allowSnap!==false&&factor>1){
+    const near=nearestTo(sx,sy);
+    if(near){followObj=near;return;}                           // snap: follow takes over
+  }
+  if(followObj)return;                                         // already locked, just scale
+  // free zoom: hold the world point under the cursor in place
+  const c=worldCentre();
+  const before=toWorld(sx,sy);
+  const after={x:(sx-c.x)/cam.tz+cam.tx+c.x, y:(sy-c.y)/cam.tz+cam.ty+c.y};
+  cam.tx+=before.x-after.x;cam.ty+=before.y-after.y;
+}
+function focusOn(obj,z){
+  followObj=obj;
+  if(z)cam.tz=clampZ(z);
+}
+function fitAll(){followObj=null;cam.tz=1;cam.tx=0;cam.ty=0;}
+function stepCam(dt){
+  // follow target: recompute every frame so the camera tracks a moving body
+  if(followObj&&followObj._pos){
+    const c=worldCentre();
+    cam.tx=followObj._pos.x-c.x;cam.ty=followObj._pos.y-c.y;
+  }
+  const k=1-Math.pow(0.0016,dt);
+  cam.z+=(cam.tz-cam.z)*k;cam.x+=(cam.tx-cam.x)*k;cam.y+=(cam.ty-cam.y)*k;
+}
+mCv.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const f=Math.pow(1.0016,-e.deltaY);            // smooth, trackpad-friendly
+  zoomAt(e.clientX,e.clientY,Math.max(.6,Math.min(1.7,f)));
+},{passive:false});
+mCv.addEventListener("mousedown",e=>{dragging=true;dragMoved=false;dragPX=e.clientX;dragPY=e.clientY;});
+addEventListener("mouseup",()=>{dragging=false;mCv.style.cursor="crosshair";});
+let pinchD=0;
+mCv.addEventListener("touchstart",e=>{
+  if(e.touches.length===2)pinchD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+  else if(e.touches.length===1){dragging=true;dragMoved=false;dragPX=e.touches[0].clientX;dragPY=e.touches[0].clientY;}
+},{passive:true});
+mCv.addEventListener("touchmove",e=>{
+  if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    if(pinchD)zoomAt((e.touches[0].clientX+e.touches[1].clientX)/2,(e.touches[0].clientY+e.touches[1].clientY)/2,d/pinchD);
+    pinchD=d;e.preventDefault();
+  }else if(e.touches.length===1&&dragging){
+    const t=e.touches[0];
+    followObj=null;                                  // panning unlocks the camera
+    cam.tx-=(t.clientX-dragPX)/cam.z;cam.ty-=(t.clientY-dragPY)/cam.z;
+    dragPX=t.clientX;dragPY=t.clientY;dragMoved=true;e.preventDefault();
+  }
+},{passive:false});
+mCv.addEventListener("touchend",()=>{dragging=false;pinchD=0;});
+document.querySelectorAll(".pxBtn").forEach(b=>b.addEventListener("click",()=>{
+  AUDIO.sfx.ui();
+}));
+$("#zoomInBtn").addEventListener("click",()=>zoomAt(innerWidth/2,innerHeight/2,1.5));
+$("#zoomOutBtn").addEventListener("click",()=>zoomAt(innerWidth/2,innerHeight/2,1/1.5,false));
+$("#fitBtn").addEventListener("click",()=>{closePanel();fitAll();});
+
+function buildBodies(){
+  bodies=[];
+  // sun
+  bodies.push({def:SUN,sprite:makePlanetSprite(SUN),isSun:true});
+  // harvester
+  bodies.push({def:HARVESTER,sprite:makeHarvesterSprite(),angle:2.1,harvester:true});
+  // planets — golden-angle spread so they never start bunched together
+  let gi=0;
+  for(const p of PLANETS){
+    const b={def:p,angle:1.1+(gi++)*2.39996,planet:true,twinAngle:0};
+    if(p.twins){
+      b.spriteA=makePlanetSprite({...p.a,size:p.size});
+      b.spriteB=makePlanetSprite({...p.b,size:p.size});
+      b.sprite=b.spriteA;
+    }else{
+      b.sprite=makePlanetSprite(p);
+    }
+    if(p.moons){
+      b.moons=p.moons.map(m=>({def:m,sprite:makePlanetSprite(m),angle:mulberry32(m.seed)()*TAU}));
+    }
+    bodies.push(b);
+  }
+  comet={def:INTERLOPER,sprite:makePlanetSprite(INTERLOPER),theta:Math.random()*TAU,tilt:2.35};
+  qmoon={def:QUANTUM,sprite:makePlanetSprite(QUANTUM),parent:null,angle:Math.random()*TAU,nextJump:0};
+  layoutOrbits();
+}
+function sizeMap(){mCv.width=innerWidth;mCv.height=innerHeight;if(bodies.length)layoutOrbits();}
+
+/* scale helpers */
+function minDim(){return Math.min(mCv.width,mCv.height);}
+let sizeK=1; // uniform scale: applied to planet sizes AND orbit radii together
+const SUN_U=28*4.8; // grand imposing sun radius in unscaled units
+
+function bodyScale(b){
+  if(b.harvester)return 1.65*sizeK;
+  if(b.isSun)return (SUN_U / b.sprite.R)*sizeK;
+  return b.def.size*1.70*sizeK;
+}
+function moonScale(m){return m.def.size*1.85*sizeK;}
+
+/* Lay the system out in sprite-units, then apply ONE uniform scale so it fits.
+   Because sizes and orbit radii shrink by the same factor, the gaps proved out
+   below can never close — planets physically cannot collide. */
+function layoutOrbits(){
+  const md=minDim(),U=28;            // U = planet sprite radius in source pixels
+  const HARV_U=SUN_U+U*3.40;         // harvester orbit lane placed with a massive open corridor
+  const SUNLANE=U*5.00;              // generous clearance between sun and innermost planet
+  const GAP=U*0.35, QM=U*0.55;       // spacious, progressive gaps so orbits never feel squished
+  sizeK=1;
+  const half={};
+  let r=SUN_U+SUNLANE;               // innermost planet orbit starts safely past sun and harvester
+  let pi=0;
+  for(const b of bodies){
+    if(!b.planet)continue;
+    const pr=U*b.def.size*1.70;
+    let h=pr;
+    if(b.def.twins)h=pr*1.05+pr;                       // two planets + separation
+    if(b.moons)for(const m of b.moons){
+      const mr=U*m.def.size*1.85;
+      h=Math.max(h, pr+U*0.32+mr*1.3+mr);              // moon orbit + moon radius
+    }
+    h=Math.max(h, pr+QM);                              // quantum-moon lane
+    half[b.def.name]=h;
+    const stepGap=GAP*(1.0 + (pi++)*0.08);
+    r+=h+stepGap; b.orbitU=r; r+=h+stepGap;
+  }
+  sizeK=(md*0.485)/r;                                  // bold screen fill factor
+  for(const b of bodies){
+    if(b.orbitU)b.orbitR=b.orbitU*sizeK;
+    if(b.harvester){
+      b.orbitU=HARV_U;
+      b.orbitR=HARV_U*sizeK;
+    }
+  }
+  // comet ellipse: perihelion close to the enlarged sun, aphelion past the last orbit
+  const first=bodies.find(b=>b.planet),last=[...bodies].reverse().find(b=>b.planet);
+  const peri=(SUN_U+U*1.30)*sizeK, apo=last.orbitR*1.10;
+  comet.a=(peri+apo)/2;
+  comet.e=(apo-peri)/(apo+peri);
+  comet.L=peri*peri*1.92;
+}
+function bodyPos(b){
+  const cx=mCv.width/2,cy=mCv.height/2;
+  if(b.isSun)return{x:cx,y:cy};
+  if(b.harvester){
+    const r=b.orbitR || (SUN_U+28*3.40)*sizeK;
+    return{x:cx+Math.cos(b.angle)*r,y:cy+Math.sin(b.angle)*r};
+  }
+  return{x:cx+Math.cos(b.angle)*b.orbitR,y:cy+Math.sin(b.angle)*b.orbitR};
+}
+function cometPos(){
+  const cx=mCv.width/2,cy=mCv.height/2;
+  const r=comet.a*(1-comet.e*comet.e)/(1+comet.e*Math.cos(comet.theta));
+  const X=Math.cos(comet.theta+comet.tilt)*r,Y=Math.sin(comet.theta+comet.tilt)*r;
+  return{x:cx+X,y:cy+Y,r};
+}
+function selBox(x,y,R,obj){
+  if(obj!==selected&&obj!==hovered)return;
+  mctx.strokeStyle=obj===selected?"#f5c84c":"#5bd0e8";
+  mctx.lineWidth=2;mctx.setLineDash([4,4]);
+  mctx.strokeRect(x-R-8,y-R-8,(R+8)*2,(R+8)*2);
+  mctx.setLineDash([]);
+}
+function startMap(){
+  if(!bodies.length)buildBodies();
+  sizeMap();
+  if(mapRun)return;
+  mapRun=true;lastT=performance.now();
+  requestAnimationFrame(mapFrame);
+}
+function mapFrame(t){
+  if(!mapRun)return;
+  const dt=Math.min(.05,(t-lastT)/1000);lastT=t;
+  if(!paused)simT+=dt;
+  stepCam(dt);
+  const cx=mCv.width/2,cy=mCv.height/2,md=minDim();
+  mctx.setTransform(1,0,0,1,0,0);
+  mctx.clearRect(0,0,mCv.width,mCv.height);
+  applyCam(mctx);
+  hits=[];
+
+  /* dotted orbit rings */
+  mctx.fillStyle="rgba(141,147,184,.28)";
+  for(const b of bodies){
+    if(!b.planet)continue;
+    const steps=Math.floor(b.orbitR*.7);
+    for(let i=0;i<steps;i++){
+      if(i%3)continue;
+      const a=i/steps*TAU;
+      mctx.fillRect(cx+Math.cos(a)*b.orbitR,cy+Math.sin(a)*b.orbitR,2,2);
+    }
+  }
+  /* comet path (tilted eccentric ellipse) */
+  mctx.fillStyle="rgba(150,210,245,.28)";
+  for(let i=0;i<240;i++){
+    if(i%3)continue;
+    const th=i/240*TAU;
+    const r=comet.a*(1-comet.e*comet.e)/(1+comet.e*Math.cos(th));
+    mctx.fillRect(cx+Math.cos(th+comet.tilt)*r,cy+Math.sin(th+comet.tilt)*r,2,2);
+  }
+
+  /* sun glow & corona */
+  const pulse=1+Math.sin(simT*1.7)*.05;
+  const sun=bodies[0],sunR=sun.sprite.R*bodyScale(sun);
+  const g=mctx.createRadialGradient(cx,cy,sunR*0.35,cx,cy,sunR*3.2*pulse);
+  g.addColorStop(0,"rgba(255,255,230,.40)");
+  g.addColorStop(0.25,"rgba(255,175,35,.26)");
+  g.addColorStop(0.55,"rgba(245,110,15,.12)");
+  g.addColorStop(0.80,"rgba(220,50,10,.04)");
+  g.addColorStop(1,"rgba(180,20,10,0)");
+  mctx.fillStyle=g;mctx.beginPath();mctx.arc(cx,cy,sunR*3.2*pulse,0,TAU);mctx.fill();
+
+  /* ---- astrophage stream + Petrova-frequency pulse ---- */
+  const harv=bodies.find(b=>b.harvester);
+  if(harv){
+    if(!paused)harv.angle+=0.2*dt;
+    const hp=bodyPos(harv);
+    const dirX=hp.x-cx,dirY=hp.y-cy,dl=Math.hypot(dirX,dirY);
+    const sx=cx+dirX/dl*sunR,sy=cy+dirY/dl*sunR;
+    const dx=hp.x-sx,dy=hp.y-sy,beamLen=Math.hypot(dx,dy);
+    const nx=-dy/beamLen,ny=dx/beamLen;
+
+    // Siphon flare at the sun's surface where light is actively drained
+    const sGlow=mctx.createRadialGradient(sx,sy,0,sx,sy,5);
+    sGlow.addColorStop(0,"rgba(255,255,230,0.95)");
+    sGlow.addColorStop(0.5,"rgba(255,140,30,0.60)");
+    sGlow.addColorStop(1,"rgba(240,60,15,0)");
+    mctx.fillStyle=sGlow;mctx.beginPath();mctx.arc(sx,sy,5,0,TAU);mctx.fill();
+
+    // Petrova line: sleek laser-crisp dual-layer plasma and IR sheath wave
+    const segs=32;
+    mctx.lineCap="round";
+    for(let i=0;i<segs;i++){
+      const t0=i/segs,t1=(i+1)/segs;
+      const wave=Math.max(0,Math.sin(TAU*(simT*0.85-t0*2.2)));
+      // outer crimson IR sheath
+      mctx.strokeStyle="rgba(255,"+Math.floor(25+wave*55)+",20,"+(0.30+wave*0.45).toFixed(3)+")";
+      mctx.lineWidth=3.5+wave*1.5;
+      mctx.beginPath();
+      mctx.moveTo(sx+dx*t0,sy+dy*t0);
+      mctx.lineTo(sx+dx*t1,sy+dy*t1);
+      mctx.stroke();
+      // bright hot inner siphon core filament
+      mctx.strokeStyle="rgba(255,"+Math.floor(240+wave*15)+","+Math.floor(180+wave*75)+","+(0.75+wave*0.25).toFixed(3)+")";
+      mctx.lineWidth=1.5;
+      mctx.beginPath();
+      mctx.moveTo(sx+dx*t0,sy+dy*t0);
+      mctx.lineTo(sx+dx*t1,sy+dy*t1);
+      mctx.stroke();
+    }
+    // bright pulse packet travelling the line at the Petrova frequency
+    const pt=(simT*0.85)%1;
+    const pIdx=Math.floor(simT*0.85);
+    if(!paused&&pIdx!==lastPetrova){lastPetrova=pIdx;AUDIO.sfx.petrova();}
+    const px2=sx+dx*pt,py2=sy+dy*pt;
+    const pg2=mctx.createRadialGradient(px2,py2,0,px2,py2,7);
+    pg2.addColorStop(0,"rgba(255,255,240,0.98)");
+    pg2.addColorStop(0.4,"rgba(255,110,40,0.85)");
+    pg2.addColorStop(1,"rgba(255,30,20,0)");
+    mctx.fillStyle=pg2;mctx.beginPath();mctx.arc(px2,py2,7,0,TAU);mctx.fill();
+
+    // subtle, tight collector glow at the harvester intake scoop (not engulfing the ship)
+    const beat=Math.max(0,Math.sin(TAU*(simT*0.85)));
+    const hgR=9+beat*3;
+    const hg=mctx.createRadialGradient(hp.x,hp.y,0,hp.x,hp.y,hgR);
+    hg.addColorStop(0,"rgba(255,100,50,"+(0.35+beat*0.25).toFixed(3)+")");
+    hg.addColorStop(1,"rgba(240,40,20,0)");
+    mctx.fillStyle=hg;mctx.beginPath();mctx.arc(hp.x,hp.y,hgR,0,TAU);mctx.fill();
+
+    // astrophage particles funneled from sun into beetle (delicate drifting embers & cells)
+    if(!paused && Math.random()<0.65){
+      phage.push({
+        t:0,
+        j:(Math.random()-0.5)*10,
+        sp:0.70+Math.random()*0.60,
+        spark:Math.random()<0.40
+      });
+    }
+    for(let i=phage.length-1;i>=0;i--){
+      const ph=phage[i];
+      if(!paused)ph.t+=dt*ph.sp;
+      if(ph.t>=1){phage.splice(i,1);continue;}
+      // funnel taper: wide at sun, converges cleanly into harvester
+      const taper=(1-ph.t*0.75);
+      const wave=Math.sin(ph.t*12+ph.j)*1.5;
+      const px=sx+dx*ph.t+nx*(ph.j*taper+wave);
+      const py=sy+dy*ph.t+ny*(ph.j*taper+wave);
+      if(ph.spark){
+        mctx.fillStyle=(ph.t<0.25)?"#ffffff":(ph.t<0.6?"#ffd870":"#ff6025");
+        const s=ph.t<0.5?1.5:1;
+        mctx.fillRect(px-s/2,py-s/2,s,s);
+      }else{
+        mctx.fillStyle=ph.t<0.15?"#8a160a":"#160406";
+        const s=2;
+        mctx.fillRect(px-s/2,py-s/2,s,s);
+      }
+    }
+  }
+
+  /* ---- planets, twins, moons, harvester ---- */
+  for(const b of bodies){
+    if(b.isSun){
+      const pos=bodyPos(b),sc=bodyScale(b)*(b===hovered?1.06:1);
+      drawShaded(mctx,b.sprite,pos.x,pos.y,sc,0,true);
+      const R=b.sprite.R*sc;
+      selBox(pos.x,pos.y,R,b);
+      hits.push({x:pos.x,y:pos.y,r:R+10,obj:b});
+      b._pos=pos;b._r=R;
+      continue;
+    }
+    if(b.harvester){
+      const pos=bodyPos(b),sc=bodyScale(b)*(b===hovered?1.15:1);
+      const ang=Math.atan2(pos.y-cy,pos.x-cx);
+      mctx.imageSmoothingEnabled=false;
+      const sz=96*sc;
+      mctx.save();
+      mctx.translate(pos.x,pos.y);
+      mctx.rotate(ang+Math.PI/2);
+      mctx.drawImage(b.sprite.cv,-sz/2,-sz/2,sz,sz);
+      mctx.restore();
+      selBox(pos.x,pos.y,b.sprite.R*sc,b);
+      hits.push({x:pos.x,y:pos.y,r:b.sprite.R*sc+12,obj:b});
+      b._pos=pos;b._r=b.sprite.R*sc;
+      continue;
+    }
+    /* planet slot */
+    if(!paused)b.angle+=b.def.speed*dt;
+    const pos=bodyPos(b),sc=bodyScale(b)*(b===hovered?1.08:1);
+    const lightA=Math.atan2(pos.y-cy,pos.x-cx);
+    if(b.def.twins){
+      if(!paused)b.twinAngle+=dt*.3;
+      const sep=b.sprite.R*sc*1.25;
+      const ax=pos.x+Math.cos(b.twinAngle)*sep,ay=pos.y+Math.sin(b.twinAngle)*sep;
+      const bx=pos.x-Math.cos(b.twinAngle)*sep,by=pos.y-Math.sin(b.twinAngle)*sep;
+      // sand column: Ash (b) -> Ember (a)
+      for(let i=0;i<10;i++){
+        const f=i/10+((simT*.35)%(1/10));
+        if(f>=1)continue;
+        mctx.fillStyle="rgba(214,184,120,"+(0.55-0.3*f).toFixed(3)+")";
+        mctx.fillRect(bx+(ax-bx)*f,by+(ay-by)*f,2,2);
+      }
+      drawShaded(mctx,b.spriteA,ax,ay,sc,Math.atan2(ay-cy,ax-cx),false);
+      drawShaded(mctx,b.spriteB,bx,by,sc,Math.atan2(by-cy,bx-cx),false);
+      const R=sep+b.sprite.R*sc;
+      selBox(pos.x,pos.y,R,b);
+      hits.push({x:pos.x,y:pos.y,r:R+8,obj:b});
+      b._pos=pos;b._r=R;
+    }else{
+      drawShaded(mctx,b.sprite,pos.x,pos.y,sc,lightA,false);
+      const R=b.sprite.R*sc;
+      if(b.def.name==="GIANT'S DEEP"){
+        drawCyclones(mctx,pos,R,dt);
+      }
+      const glow=b.def.name==="GIANT'S DEEP" ? "rgba(60,255,160,0.50)" : (b.def.name==="TIMBER HEARTH" ? "rgba(90,210,255,0.45)" : null);
+      drawAtmosphereAndShadow(mctx,pos.x,pos.y,R,glow,cx,cy);
+      selBox(pos.x,pos.y,R,b);
+      hits.push({x:pos.x,y:pos.y,r:R+10,obj:b});
+      b._pos=pos;b._r=R;
+    }
+
+    /* moons */
+    if(b.moons)for(const m of b.moons){
+      if(!paused)m.angle+=m.def.speed*dt;
+      const msc=moonScale(m);
+      const dist=b.sprite.R*sc+28*0.30*sizeK+m.sprite.R*msc*1.3;
+      const mx=pos.x+Math.cos(m.angle)*dist,my=pos.y+Math.sin(m.angle)*dist;
+      drawShaded(mctx,m.sprite,mx,my,msc,Math.atan2(my-cy,mx-cx),false);
+      const mR=m.sprite.R*msc;
+      if(m.def.name==="HOLLOW'S LANTERN"){
+        drawAtmosphereAndShadow(mctx,mx,my,mR,"rgba(255,80,20,0.60)",cx,cy);
+      }
+      selBox(mx,my,mR,m);
+      hits.push({x:mx,y:my,r:mR+8,obj:m});
+      m._pos={x:mx,y:my};m._r=mR;
+    }
+  }
+  updateVolcano(dt);
+
+  /* ---- the Interloper (comet) ---- */
+  {
+    const cp=cometPos();
+    if(!paused)comet.theta+=comet.L/(cp.r*cp.r)*dt;
+    // one whoosh each time it whips through perihelion
+    const orbits=Math.floor(comet.theta/TAU);
+    if(!paused&&orbits!==lastPeri){lastPeri=orbits;AUDIO.sfx.comet();}
+
+    const sc=INTERLOPER.size*1.05*sizeK;
+    const R=comet.sprite.R*sc;
+
+    // Trailing comet tail: curves behind the comet along its orbital trajectory with solar wind deflection
+    const v_ang = comet.L / (cp.r * cp.r);
+    const peri = comet.a * (1 - comet.e);
+    const periRatio = Math.min(1.0, peri / cp.r);
+    // Guarantee a long, majestic tail even in deep space, flaring hugely near the sun
+    const minDth = 0.35;
+    const tailTime = 2.0 + 2.5 * Math.pow(periRatio, 0.7);
+    const dth_total = Math.min(2.4, Math.max(minDth, v_ang * tailTime));
+    const steps = 42;
+    const pts = [];
+
+    for(let i = 0; i <= steps; i++){
+      const frac = i / steps;
+      const th_prev = comet.theta - frac * dth_total;
+      const r_prev = comet.a * (1 - comet.e * comet.e) / (1 + comet.e * Math.cos(th_prev));
+      const X_prev = cx + Math.cos(th_prev + comet.tilt) * r_prev;
+      const Y_prev = cy + Math.sin(th_prev + comet.tilt) * r_prev;
+
+      // Solar radiation pressure pushes vapor outward away from sun
+      const outX = (X_prev - cx) / r_prev;
+      const outY = (Y_prev - cy) / r_prev;
+      const drift = Math.pow(frac, 1.2) * (14 + Math.pow(peri / r_prev, 0.7) * 28) * sizeK;
+
+      const px = X_prev + outX * drift;
+      const py = Y_prev + outY * drift;
+      pts.push({x: px, y: py, frac: frac});
+    }
+
+    // 1. Glowing cyan ice coma around the comet nucleus
+    const comaR = R * 3.0;
+    const coma = mctx.createRadialGradient(cp.x, cp.y, 0, cp.x, cp.y, comaR);
+    coma.addColorStop(0, "rgba(240, 253, 255, 0.95)");
+    coma.addColorStop(0.35, "rgba(140, 230, 255, 0.55)");
+    coma.addColorStop(0.70, "rgba(60, 170, 245, 0.18)");
+    coma.addColorStop(1, "rgba(40, 120, 220, 0)");
+    mctx.fillStyle = coma; mctx.beginPath(); mctx.arc(cp.x, cp.y, comaR, 0, TAU); mctx.fill();
+
+    // 2. Outer diffuse vapor plume (smooth curved ribbon)
+    mctx.lineCap = "round";
+    mctx.lineJoin = "round";
+    for(let i = 0; i < pts.length - 1; i++){
+      const p0 = pts[i], p1 = pts[i+1];
+      const f = p0.frac;
+      const alpha = (0.50 * (1 - f) * (0.45 + 0.55 * periRatio)).toFixed(3);
+      mctx.strokeStyle = "rgba(110, 210, 255, " + alpha + ")";
+      mctx.lineWidth = Math.max(1.5, (1 - f * 0.6) * (18 * sizeK) + 2);
+      mctx.beginPath();
+      mctx.moveTo(p0.x, p0.y);
+      mctx.lineTo(p1.x, p1.y);
+      mctx.stroke();
+    }
+
+    // 3. Inner luminous white-cyan core streamer
+    for(let i = 0; i < pts.length - 1; i++){
+      const p0 = pts[i], p1 = pts[i+1];
+      const f = p0.frac;
+      const alpha = (0.85 * (1 - f) * (0.55 + 0.45 * periRatio)).toFixed(3);
+      mctx.strokeStyle = (f < 0.25) ? "rgba(250, 254, 255, " + alpha + ")" : "rgba(170, 240, 255, " + alpha + ")";
+      mctx.lineWidth = Math.max(1, (1 - f * 0.7) * (7 * sizeK) + 1.5);
+      mctx.beginPath();
+      mctx.moveTo(p0.x, p0.y);
+      mctx.lineTo(p1.x, p1.y);
+      mctx.stroke();
+    }
+
+    // 4. Sparkling ice crystals / vapor dust trailing in the plume
+    const numDust = Math.floor(30 * (0.50 + 0.50 * periRatio));
+    for(let i = 0; i < numDust; i++){
+      const rndIdx = mulberry32(i * 97 + Math.floor(simT * 10))();
+      const idx = Math.floor(rndIdx * (pts.length - 1));
+      const pt = pts[idx];
+      const f = pt.frac;
+      const spread = (f * 12 * sizeK + 2);
+      const jx = (mulberry32(i * 131 + Math.floor(simT * 7))() - 0.5) * spread * 2;
+      const jy = (mulberry32(i * 211 + Math.floor(simT * 7))() - 0.5) * spread * 2;
+      const alpha = (0.75 * (1 - f)).toFixed(3);
+      mctx.fillStyle = (f < 0.25) ? "rgba(255, 255, 255, " + alpha + ")" : "rgba(160, 235, 255, " + alpha + ")";
+      const sz = (f < 0.35) ? 2 : 1;
+      mctx.fillRect(pt.x + jx, pt.y + jy, sz, sz);
+    }
+
+    drawShaded(mctx,comet.sprite,cp.x,cp.y,sc,Math.atan2(cp.y-cy,cp.x-cx),false);
+    selBox(cp.x,cp.y,R,comet);
+    hits.push({x:cp.x,y:cp.y,r:R+12,obj:comet});
+    comet._pos={x:cp.x,y:cp.y};comet._r=R;
+  }
+
+  /* ---- the Quantum Moon: moves only while unobserved ---- */
+  {
+    const q=qmoon;
+    const planets=bodies.filter(b=>b.planet);
+    if(!q.parent)q.parent=planets[Math.floor(Math.random()*planets.length)];
+    const watched=hovered===q||selected===q;
+    if(!paused&&simT>q.nextJump&&!watched){
+      const old=q._pos;
+      let next=q.parent;
+      while(next===q.parent)next=planets[Math.floor(Math.random()*planets.length)];
+      q.parent=next;q.angle=Math.random()*TAU;
+      q.nextJump=simT+6+Math.random()*7;
+      AUDIO.sfx.quantum();
+      if(old)jumpFx={x:old.x,y:old.y,t:0};
+    }
+    if(q.nextJump<simT)q.nextJump=simT+6+Math.random()*7;
+    if(!paused)q.angle+=.22*dt;
+    const p=q.parent,ppos=bodyPos(p),psc=bodyScale(p);
+    const qsc=moonScale(q)*((hovered===q)?1.15:1);
+    const dist=p.sprite.R*psc*(p.def.twins?2.2:1)+28*0.25*sizeK+q.sprite.R*qsc*1.2;
+    let qx=ppos.x+Math.cos(q.angle)*dist,qy=ppos.y+Math.sin(q.angle)*dist;
+    // dodge: nudge outward if it would ever touch its host's moon or a neighbour
+    let qdx=qx,qdy=qy;
+    {
+      const qr=q.sprite.R*qsc;let push=0;
+      for(const h of hits){
+        if(h.obj===p)continue;
+        const need=qr+h.r+6,dx=qdx-h.x,dy=qdy-h.y,dd=Math.hypot(dx,dy);
+        if(dd<need&&dd>0.001)push=Math.max(push,need-dd);
+      }
+      q.dodge=(q.dodge||0)+(push-(q.dodge||0))*Math.min(1,dt*5);
+      const ux=Math.cos(q.angle),uy=Math.sin(q.angle);
+      qdx+=ux*q.dodge;qdy+=uy*q.dodge;
+    }
+    const qx0=qx,qy0=qy;qx=qdx;qy=qdy;
+    drawShaded(mctx,q.sprite,qx,qy,qsc,Math.atan2(qy-cy,qx-cx),false);
+    // faint uncertainty shimmer
+    mctx.strokeStyle="rgba(179,173,201,"+(0.10+0.10*Math.sin(simT*5)).toFixed(3)+")";
+    mctx.beginPath();mctx.arc(qx,qy,q.sprite.R*qsc+4+2*Math.sin(simT*3),0,TAU);mctx.stroke();
+    const qR=q.sprite.R*qsc;
+    selBox(qx,qy,qR,q);
+    hits.push({x:qx,y:qy,r:qR+10,obj:q});
+    q._pos={x:qx,y:qy};q._r=qR;
+    // departure sparkle
+    if(jumpFx){
+      jumpFx.t+=dt;
+      if(jumpFx.t>.6)jumpFx=null;
+      else{
+        mctx.strokeStyle="rgba(220,214,240,"+(0.6*(1-jumpFx.t/.6)).toFixed(3)+")";
+        mctx.beginPath();mctx.arc(jumpFx.x,jumpFx.y,4+jumpFx.t*46,0,TAU);mctx.stroke();
+      }
+    }
+  }
+
+  updateSignalscope(dt);
+
+  mctx.setTransform(1,0,0,1,0,0);
+  requestAnimationFrame(mapFrame);
+}
+function pick(sx,sy){
+  const w=toWorld(sx,sy);
+  let best=null,bd=1e9;
+  for(const h of hits){
+    const d=Math.hypot(w.x-h.x,w.y-h.y);
+    if(d<h.r&&d<bd){best=h.obj;bd=d;}
+  }
+  return best;
+}
+mCv.addEventListener("mousemove",e=>{
+  sigMouse.x=e.clientX;sigMouse.y=e.clientY;
+  if(dragging){
+    followObj=null;                                  // panning unlocks the camera
+    mCv.style.cursor="grabbing";
+    cam.tx-=(e.clientX-dragPX)/cam.z;cam.ty-=(e.clientY-dragPY)/cam.z;
+    dragPX=e.clientX;dragPY=e.clientY;dragMoved=true;
+    tooltip.style.display="none";hovered=null;return;
+  }
+  const prevHover=hovered;
+  hovered=pick(e.clientX,e.clientY);
+  if(hovered&&hovered!==prevHover)AUDIO.sfx.hover();
+  if(hovered){
+    mCv.style.cursor="pointer";
+    tooltip.style.display="block";
+    tooltip.innerHTML=hovered.def.name+"<span>"+hovered.def.cls+"</span>";
+    tooltip.style.left=Math.min(innerWidth-220,e.clientX+18)+"px";
+    tooltip.style.top=(e.clientY+18)+"px";
+  }else{mCv.style.cursor="crosshair";tooltip.style.display="none";}
+});
+mCv.addEventListener("click",e=>{
+  if(dragMoved){dragMoved=false;return;}
+  const b=pick(e.clientX,e.clientY);
+  if(b)openPanel(b);else{closePanel();}
+});
+mCv.addEventListener("dblclick",e=>{
+  const b=pick(e.clientX,e.clientY)||nearestTo(e.clientX,e.clientY);
+  if(b)focusOn(b,Math.min(ZMAX,cam.tz*2));
+  else fitAll();
+});
+function openPanel(b){
+  AUDIO.sfx.select();
+  selected=b;
+  // frame the body: fill roughly a third of the shorter screen edge
+  if(b._pos)focusOn(b,Math.max(1.6,Math.min(ZMAX,minDim()*0.16/(b._r||40))));
+  const d=b.def;
+  $("#panelName").textContent=d.name;
+  $("#panelClass").textContent=d.cls;
+  const sg=$("#panelStats");sg.innerHTML="";
+  for(const k in d.stats){
+    const el=document.createElement("div");el.className="stat";
+    el.innerHTML="<b>"+k+"</b><span>"+d.stats[k]+"</span>";
+    sg.appendChild(el);
+  }
+  $("#panelLore").textContent=d.lore;
+  const pc=$("#panelSprite").getContext("2d");
+  pc.imageSmoothingEnabled=false;
+  pc.clearRect(0,0,96,96);
+  if(d.twins){
+    pc.drawImage(b.spriteA.cv,0,0,96,96,-12,-12,80,80);
+    pc.drawImage(b.spriteB.cv,0,0,96,96,28,28,80,80);
+  }else{
+    pc.drawImage(b.sprite.cv,0,0,b.sprite.cv.width,b.sprite.cv.height,0,0,96,96);
+  }
+  $("#panel").classList.add("open");
+}
+function closePanel(){
+  if($("#panel").classList.contains("open"))AUDIO.sfx.close();
+  selected=null;$("#panel").classList.remove("open");
+}
+addEventListener("keydown",e=>{
+  if(cur!==3)return;
+  if(e.key==="+"||e.key==="=")zoomAt(innerWidth/2,innerHeight/2,1.5);
+  if(e.key==="-"||e.key==="_")zoomAt(innerWidth/2,innerHeight/2,1/1.5,false);
+  if(e.key==="0"){closePanel();fitAll();}
+  if(e.key==="s"||e.key==="S")toggleSignalscope();
+  if(e.key==="Escape"&&sigActive)toggleSignalscope();
+});
+$("#panelClose").addEventListener("click",closePanel);
+$("#signalBtn").addEventListener("click",toggleSignalscope);
+$("#sigExitBtn").addEventListener("click",toggleSignalscope);
+$("#pauseBtn").addEventListener("click",e=>{
+  paused=!paused;
+  if(paused)AUDIO.stopMap();else AUDIO.startMap();
+  e.currentTarget.textContent=paused?"▶ ORBITS":"❚❚ ORBITS";
+});
+$("#replayBtn").addEventListener("click",()=>{closePanel();introWaived=audioArmed;show(0);});
+
+/* ============ boot ============ */
+function sizeAll(){sizeStars();sizeMap();fCv.width=innerWidth;fCv.height=innerHeight;if(cur===1)sizeCrawl();}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)AUDIO.resume();});
+addEventListener("resize",sizeAll);
+sizeAll();
+(function loop(t){drawStars(t||0);requestAnimationFrame(loop);})(0);
+/* The intro starts immediately, exactly as before. Browsers require a user
+   gesture before audio can play, so the score arms itself on the first click,
+   key press or touch — and picks up wherever the intro currently is. */
+let audioArmed=false;
+function armAudio(){
+  if(audioArmed)return;
+  audioArmed=true;
+  AUDIO.init();AUDIO.resume();
+  $("#soundHint").classList.remove("show");
+  $("#muteBtn").innerHTML="&#9834; ON";
+  // Start the YouTube Outer Wilds OST playlist
+  ytPlay();
+  $("#trackCtl").classList.add("show");
+  setTimeout(updateTrackName,1000);
+  if(waitingForAudio){beginTitle();return;}     // we were holding for exactly this
+  // during the prologue (cur===0) we stay silent on purpose
+}
+for(const ev of ["pointerdown","keydown","touchstart"])
+  addEventListener(ev,armAudio,{once:false,passive:true});
+$("#muteBtn").classList.add("show");
+$("#muteBtn").addEventListener("click",e=>{
+  armAudio();
+  AUDIO.resume();
+  const m=!AUDIO.isMuted();
+  AUDIO.setMuted(m);
+  e.currentTarget.innerHTML=m?"&#9834; OFF":"&#9834; ON";
+});
+$("#prevTrack").addEventListener("click",()=>{AUDIO.sfx.ui();ytPrev();});
+$("#nextTrack").addEventListener("click",()=>{AUDIO.sfx.ui();ytNext();});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(cur===1)sizeCrawl();});
+
+show(0);   // start the intro immediately, as it was before the audio work
+</script>
+</body>
+</html>
