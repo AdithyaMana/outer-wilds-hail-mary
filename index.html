@@ -294,32 +294,112 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   transform: translateY(0);
 }
 
-#clickToPlayNotice {
+/* ============ WAKE UP INTRO ============ */
+#eyelidTop, #eyelidBottom {
   position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(9, 20, 28, 0.94);
-  border: 2px solid #5bd0e8;
-  color: #ffd700;
-  font-family: var(--display);
-  font-size: 10px;
-  padding: 10px 20px;
-  letter-spacing: 0.12em;
-  border-radius: 4px;
-  box-shadow: 0 0 25px rgba(91, 208, 232, 0.35), 0 4px 16px #000;
-  z-index: 9999;
+  left: 0;
+  right: 0;
+  height: 50.5vh;
+  background: #050309;
+  z-index: 99998;
+  pointer-events: none;
+  transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+}
+#eyelidTop { top: 0; transform-origin: top; box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
+#eyelidBottom { bottom: 0; transform-origin: bottom; box-shadow: 0 -10px 40px rgba(0,0,0,0.9); }
+.eyesOpen #eyelidTop { transform: translateY(-100%); }
+.eyesOpen #eyelidBottom { transform: translateY(100%); }
+
+#wakeUpScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.96) 0%, rgba(5, 3, 9, 0.99) 75%, #000 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   user-select: none;
-  animation: noticePulse 2.2s ease-in-out infinite;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
-@keyframes noticePulse {
-  0%, 100% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.03); }
+#wakeUpScreen.waking {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.06);
+}
+.wakeContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 30px 20px;
+  max-width: 640px;
+}
+.wakeSub {
+  font-family: var(--body);
+  color: #5bd0e8;
+  font-size: 20px;
+  letter-spacing: 0.35em;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.wakeTitle {
+  font-family: var(--logo-font);
+  color: #fff;
+  font-size: clamp(24px, 5vw, 42px);
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 30px rgba(91, 208, 232, 0.5), 0 4px 12px #000;
+  margin-bottom: 34px;
+  line-height: 1.15;
+}
+.wakePrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  background: rgba(13, 16, 36, 0.92);
+  border: 2px solid #5bd0e8;
+  padding: 24px 38px;
+  border-radius: 6px;
+  box-shadow: 0 0 35px rgba(91, 208, 232, 0.35), inset 0 0 20px rgba(91, 208, 232, 0.1);
+  animation: wakePulse 2.4s ease-in-out infinite;
+}
+@keyframes wakePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 30px rgba(91, 208, 232, 0.3), inset 0 0 15px rgba(91, 208, 232, 0.08);
+    border-color: #5bd0e8;
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 50px rgba(91, 208, 232, 0.6), inset 0 0 25px rgba(91, 208, 232, 0.2);
+    border-color: #ffd700;
+  }
+}
+.wakeEye {
+  font-size: 34px;
+  animation: eyeBlink 3.5s ease-in-out infinite;
+  display: inline-block;
+  line-height: 1;
+}
+@keyframes eyeBlink {
+  0%, 88%, 100% { transform: scaleY(1); opacity: 0.95; }
+  94% { transform: scaleY(0.08); opacity: 0.25; }
+}
+.wakeAction {
+  font-family: var(--display);
+  color: #ffd700;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+.wakeHint {
+  font-family: var(--body);
+  color: #8d93b8;
+  font-size: 17px;
+  letter-spacing: 0.18em;
 }
 
 @media (max-width:640px){
@@ -337,6 +417,19 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 <body>
 
 <canvas id="stars"></canvas>
+<div id="eyelidTop"></div>
+<div id="eyelidBottom"></div>
+<div id="wakeUpScreen">
+  <div class="wakeContainer">
+    <div class="wakeSub">THE EXPEDITION AWAITS</div>
+    <div class="wakeTitle">THE OUTER WILDS <span style="color:#ffd700">×</span> PROJECT HAIL MARY</div>
+    <div class="wakePrompt">
+      <div class="wakeEye">👁️</div>
+      <div class="wakeAction">CLICK ANYWHERE TO WAKE UP</div>
+      <div class="wakeHint">// INITIALIZE HEARTHIAN VISOR &amp; AUDIO ENGINE</div>
+    </div>
+  </div>
+</div>
 <button class="pxBtn" id="muteBtn" title="Sound">&#9834; SOUND</button>
 <div id="trackCtl">
   <button class="pxBtn" id="prevTrack" title="Previous track">&#9664;</button>
@@ -439,8 +532,6 @@ MARY</h1>
     style="border:none;">
   </iframe>
 </div>
-
-<div id="clickToPlayNotice"><span>&#9656;</span> CLICK TO PLAY "AMAZE AMAZE AMAZE" <span>&#9835;</span></div>
 
 <div id="introCtl">
   <button class="pxBtn" id="speedBtn" title="Cycle intro playback speed">&#9656; 1x</button>
@@ -2548,8 +2639,6 @@ function armAudio(){
     AUDIO.init();
     AUDIO.resume();
     $("#soundHint").classList.remove("show");
-    const notice=document.getElementById("clickToPlayNotice");
-    if(notice)notice.style.display="none";
     $("#trackCtl").classList.add("show");
   }
   if(!AUDIO.isMuted()){
@@ -2558,28 +2647,44 @@ function armAudio(){
   setTimeout(updateTrackName,300);
 }
 
-const playNotice=document.getElementById("clickToPlayNotice");
-if(playNotice){
-  playNotice.addEventListener("click",(e)=>{
-    e.stopPropagation();
-    armAudio();
-    playNotice.style.display="none";
-  });
+/* Outer Wilds Wake Up Transition */
+let hasWokenUp=false;
+function triggerWakeUp(){
+  if(hasWokenUp)return;
+  hasWokenUp=true;
+
+  // Direct user gesture audio unlock
+  armAudio();
+  AUDIO.sfx.tuneLock();
+
+  document.body.classList.add("eyesOpen");
+  const ws=document.getElementById("wakeUpScreen");
+  if(ws)ws.classList.add("waking");
+
+  setTimeout(()=>{
+    if(ws)ws.remove();
+    const top=document.getElementById("eyelidTop");
+    const btm=document.getElementById("eyelidBottom");
+    if(top)top.remove();
+    if(btm)btm.remove();
+  },1200);
+
+  show(0);
 }
 
+const wakeScreen=document.getElementById("wakeUpScreen");
+if(wakeScreen){
+  wakeScreen.addEventListener("click",triggerWakeUp);
+  wakeScreen.addEventListener("touchstart",triggerWakeUp,{passive:true});
+}
+window.addEventListener("keydown",function onKeyWake(e){
+  if(!hasWokenUp&&(e.code==="Space"||e.code==="Enter")){
+    triggerWakeUp();
+  }
+});
+
 for(const ev of ["pointerdown","keydown","touchstart","mousedown","click","wheel"])
-  window.addEventListener(ev,armAudio,{passive:true});
-
-window.addEventListener("mousemove",function onFirstMove(){
-  armAudio();
-  window.removeEventListener("mousemove",onFirstMove);
-},{passive:true});
-
-// Trigger sound immediately on boot
-armAudio();
-setTimeout(armAudio,200);
-setTimeout(armAudio,800);
-setTimeout(armAudio,2000);
+  window.addEventListener(ev,()=>{ if(hasWokenUp&&!audioArmed)armAudio(); },{passive:true});
 
 $("#muteBtn").classList.add("show");
 $("#muteBtn").innerHTML="&#9834; ON";
@@ -2591,8 +2696,6 @@ $("#muteBtn").addEventListener("click",e=>{
     AUDIO.init();
     AUDIO.resume();
     $("#soundHint").classList.remove("show");
-    const notice=document.getElementById("clickToPlayNotice");
-    if(notice)notice.style.display="none";
     $("#trackCtl").classList.add("show");
   }
   const m=!AUDIO.isMuted();
@@ -2603,8 +2706,6 @@ $("#muteBtn").addEventListener("click",e=>{
 $("#prevTrack").addEventListener("click",(e)=>{e.stopPropagation();AUDIO.sfx.ui();ytPrev();});
 $("#nextTrack").addEventListener("click",(e)=>{e.stopPropagation();AUDIO.sfx.ui();ytNext();});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(cur===1)sizeCrawl();});
-
-show(0);
 </script>
 </body>
 </html>
