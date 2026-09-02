@@ -223,7 +223,67 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 #sigWaveCanvas{width:280px;height:44px;background:#03100d;border:1px solid #1a4f5c}
 #sigStatus{font-family:var(--display);font-size:11px;color:#5bd0e8;letter-spacing:.12em;text-align:center}
 #sigSubtext{font-family:var(--body);font-size:17px;color:#d0f4fc;letter-spacing:.16em;text-align:center}
-
+/* Rocky the Eridian Sticker */
+#rockySticker {
+  position: fixed;
+  bottom: 22px;
+  left: 22px;
+  z-index: 25;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 8px 22px rgba(0,0,0,0.75));
+}
+#rockySticker:hover {
+  transform: scale(1.12) rotate(3deg);
+}
+#rockySticker:active {
+  transform: scale(0.96) rotate(-2deg);
+}
+#rockyImg {
+  width: 120px;
+  height: 120px;
+  display: block;
+  pointer-events: auto;
+  animation: rockyBreathe 4s ease-in-out infinite;
+}
+@keyframes rockyBreathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+#rockyBubble {
+  position: absolute;
+  bottom: 112%;
+  left: 8px;
+  background: #09141c;
+  border: 2px solid #5bd0e8;
+  color: #ffd700;
+  font-family: var(--display);
+  font-size: 10px;
+  padding: 8px 14px;
+  white-space: nowrap;
+  border-radius: 4px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.6), 3px 3px 0 #000;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  letter-spacing: 0.08em;
+}
+#rockyBubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 26px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: #5bd0e8 transparent transparent transparent;
+}
+#rockySticker:hover #rockyBubble,
+#rockySticker.active #rockyBubble {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 @media (max-width:640px){
   #panel{top:auto;height:72vh;width:100vw;border-left:none;border-top:3px solid var(--panel-edge);transform:translateY(105%)}
@@ -328,6 +388,11 @@ MARY</h1>
   </aside>
 </section>
 
+<div id="rockySticker" title="Rocky: 'Amaze! Amaze! Amaze!'">
+  <div id="rockyBubble">AMAZE! AMAZE! AMAZE! 🎵🎶</div>
+  <img src="rocky.png" alt="Rocky from Project Hail Mary" id="rockyImg" />
+</div>
+
 <div id="ytPlayerWrap" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;z-index:-1"><div id="ytPlayer"></div></div>
 
 <div id="introCtl">
@@ -344,8 +409,8 @@ document.head.appendChild(ytTag);
 let ytPlayer=null,ytReady=false;
 
 const MAIN_TRACKS=[
-  { id:"Xpkc-NU1KA0", title:"Outer Wilds (Main Theme)" },
-  { id:"RxAu1VsaGtc", title:"Amaze Amaze Amaze (Life on Erid)" }
+  { id:"RxAu1VsaGtc", title:"Amaze Amaze Amaze (Life on Erid)" },
+  { id:"Xpkc-NU1KA0", title:"Outer Wilds (Main Theme)" }
 ];
 let currentMainIdx=0;
 let savedPlaybackTime=0;
@@ -367,14 +432,14 @@ window.onYouTubeIframeAPIReady=function(){
     height:'1',width:'1',
     videoId:MAIN_TRACKS[0].id,
     playerVars:{
-      autoplay:0,
+      autoplay:1,
       controls:0,
       rel:0
     },
     events:{
       onReady:function(){
         ytReady=true;
-        if(audioArmed)ytPlay();
+        ytPlay();
         updateTrackName();
       },
       onStateChange:function(e){
@@ -392,6 +457,7 @@ window.onYouTubeIframeAPIReady=function(){
 function ytPlay(){
   if(!ytReady||!ytPlayer)return;
   try{
+    if(ytPlayer.unMute)ytPlayer.unMute();
     if(ytPlayer.playVideo)ytPlayer.playVideo();
     updateTrackName();
   }catch(e){}
@@ -2367,32 +2433,57 @@ $("#pauseBtn").addEventListener("click",e=>{
 });
 $("#replayBtn").addEventListener("click",()=>{closePanel();introWaived=audioArmed;show(0);});
 
+/* Rocky Interactive Sticker Quote Handler */
+const rockySticker=document.getElementById("rockySticker");
+if(rockySticker){
+  const rockyQuotes=[
+    "AMAZE! AMAZE! AMAZE! 🎵🎶",
+    "FIST MY BUMP! 🤜🤛",
+    "QUESTION? GOOD, PROUD! 🛠️",
+    "HUMAN LEAKY! SLEEP NOW! 💤",
+    "VERY GOOD SCIENCE! 🧪⭐",
+    "YOU SAVED ME, I SAVED YOU! 🚀"
+  ];
+  let quoteIdx=0;
+  rockySticker.addEventListener("click",()=>{
+    armAudio();
+    AUDIO.sfx.tuneLock();
+    quoteIdx=(quoteIdx+1)%rockyQuotes.length;
+    const b=document.getElementById("rockyBubble");
+    if(b)b.textContent=rockyQuotes[quoteIdx];
+    rockySticker.classList.add("active");
+    setTimeout(()=>rockySticker.classList.remove("active"),3200);
+  });
+}
+
 /* ============ boot ============ */
 function sizeAll(){sizeStars();sizeMap();fCv.width=innerWidth;fCv.height=innerHeight;if(cur===1)sizeCrawl();}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)AUDIO.resume();});
 addEventListener("resize",sizeAll);
 sizeAll();
 (function loop(t){drawStars(t||0);requestAnimationFrame(loop);})(0);
-/* The intro starts immediately, exactly as before. Browsers require a user
-   gesture before audio can play, so the score arms itself on the first click,
-   key press or touch — and picks up wherever the intro currently is. */
+
 let audioArmed=false;
 function armAudio(){
   if(audioArmed)return;
   audioArmed=true;
   AUDIO.init();AUDIO.resume();
+  AUDIO.setMuted(false);
   $("#soundHint").classList.remove("show");
   $("#muteBtn").innerHTML="&#9834; ON";
-  // Start the YouTube Outer Wilds OST playlist
   ytPlay();
   $("#trackCtl").classList.add("show");
-  setTimeout(updateTrackName,1000);
-  if(waitingForAudio){beginTitle();return;}     // we were holding for exactly this
-  // during the prologue (cur===0) we stay silent on purpose
+  setTimeout(updateTrackName,600);
+  if(waitingForAudio){beginTitle();return;}
 }
-for(const ev of ["pointerdown","keydown","touchstart"])
+for(const ev of ["pointerdown","keydown","touchstart","mousemove","wheel","click"])
   addEventListener(ev,armAudio,{once:false,passive:true});
+
+// Trigger sound immediately
+setTimeout(armAudio,100);
+
 $("#muteBtn").classList.add("show");
+$("#muteBtn").innerHTML="&#9834; ON";
 $("#muteBtn").addEventListener("click",e=>{
   armAudio();
   AUDIO.resume();
@@ -2404,7 +2495,7 @@ $("#prevTrack").addEventListener("click",()=>{AUDIO.sfx.ui();ytPrev();});
 $("#nextTrack").addEventListener("click",()=>{AUDIO.sfx.ui();ytNext();});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(cur===1)sizeCrawl();});
 
-show(0);   // start the intro immediately, as it was before the audio work
+show(0);
 </script>
 </body>
 </html>
