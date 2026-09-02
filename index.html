@@ -346,76 +346,42 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   pointer-events: none;
   transform: scale(1.05);
 }
-.wakeContainer {
+.wakePrompt {
   position: relative;
   z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  padding: 30px 20px;
-  max-width: 680px;
-}
-.wakeSub {
-  font-family: var(--display);
-  color: #5bd0e8;
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  margin-bottom: 22px;
-  text-transform: uppercase;
-  text-shadow: 2px 2px 0 #000;
-}
-.wakeTitle {
-  font-family: var(--display);
-  color: #ffffff;
-  font-size: clamp(14px, 2.8vw, 22px);
-  letter-spacing: 0.14em;
-  text-shadow: 3px 3px 0 #000;
-  margin: 0 0 34px 0;
-  line-height: 1.8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.wakeCross {
-  color: #ffd700;
-  font-size: 0.85em;
-  margin: 2px 0;
-  text-shadow: 2px 2px 0 #000;
-}
-.wakePrompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  gap: 16px;
   background: #09141c;
   border: 3px solid #5bd0e8;
   outline: 3px solid #000;
-  box-shadow: 6px 6px 0 #000, 10px 10px 0 rgba(27, 40, 56, 0.8);
-  padding: 24px 34px;
-  animation: wakePixelPulse 2s steps(1, end) infinite;
+  box-shadow: 6px 6px 0 #000, 12px 12px 0 rgba(27, 40, 56, 0.85);
+  padding: 28px 44px;
+  animation: wakePixelPulse 2.4s steps(1, end) infinite;
+  max-width: 90vw;
 }
 @keyframes wakePixelPulse {
   0%, 100% {
     border-color: #5bd0e8;
     transform: translate(0, 0);
-    box-shadow: 6px 6px 0 #000, 10px 10px 0 rgba(27, 40, 56, 0.8);
+    box-shadow: 6px 6px 0 #000, 12px 12px 0 rgba(27, 40, 56, 0.85);
   }
   50% {
     border-color: #ffd700;
     transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 #000, 12px 12px 0 rgba(27, 40, 56, 0.9);
+    box-shadow: 8px 8px 0 #000, 14px 14px 0 rgba(27, 40, 56, 0.95);
   }
 }
 .pixelEyeWrap {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .pixelEyeSvg {
-  width: 58px;
-  height: 34px;
+  width: 60px;
+  height: 35px;
   display: block;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
@@ -434,21 +400,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
   font-size: clamp(10px, 1.8vw, 13px);
   letter-spacing: 0.14em;
   text-shadow: 2px 2px 0 #000;
-}
-.wakeHint {
-  font-family: var(--display);
-  color: #e8e4d8;
-  font-size: 8px;
-  letter-spacing: 0.16em;
-  opacity: 0.85;
-  text-shadow: 1px 1px 0 #000;
-}
-.wakeStatus {
-  font-family: var(--body);
-  color: #8d93b8;
-  font-size: 16px;
-  letter-spacing: 0.18em;
-  margin-top: 2px;
+  text-align: center;
 }
 
 @media (max-width:640px){
@@ -469,33 +421,23 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 <div id="eyelidTop"></div>
 <div id="eyelidBottom"></div>
 <div id="wakeUpScreen">
-  <div class="wakeContainer">
-    <div class="wakeSub">// EXPEDITION LOG: UNMAPPED SYSTEM //</div>
-    <div class="wakeTitle">
-      <span>THE OUTER WILDS</span>
-      <span class="wakeCross">×</span>
-      <span>PROJECT HAIL MARY</span>
+  <div class="wakePrompt">
+    <div class="pixelEyeWrap">
+      <svg class="pixelEyeSvg" viewBox="0 0 24 14" shape-rendering="crispEdges">
+        <!-- Outer pixel border -->
+        <path d="M8 0h8v1h3v1h2v2h1v6h-1v2h-2v1h-3v1H8v-1H5v-1H3v-2H2V4h1V2h2V1h3V0z" fill="#000"/>
+        <!-- Off-white Sclera -->
+        <path d="M8 1h8v1h3v2h2v6h-2v2h-3v1H8v-1H5v-2H3V4h2V2h3V1z" fill="#e8e4d8"/>
+        <!-- Amber crescent, Cyan iris, and Dark cyan shadow -->
+        <path d="M7 3h2v8H7z" fill="#ff6b35"/>
+        <path d="M9 2h6v10H9z" fill="#5bd0e8"/>
+        <path d="M15 3h2v8h-2z" fill="#2a7588"/>
+        <!-- Pupil & crisp white gleam -->
+        <path d="M11 4h2v6h-2z" fill="#050309"/>
+        <rect x="10" y="4" width="2" height="2" fill="#ffffff"/>
+      </svg>
     </div>
-    <div class="wakePrompt">
-      <div class="pixelEyeWrap">
-        <svg class="pixelEyeSvg" viewBox="0 0 24 14" shape-rendering="crispEdges">
-          <!-- Outer pixel border -->
-          <path d="M8 0h8v1h3v1h2v2h1v6h-1v2h-2v1h-3v1H8v-1H5v-1H3v-2H2V4h1V2h2V1h3V0z" fill="#000"/>
-          <!-- Off-white Sclera -->
-          <path d="M8 1h8v1h3v2h2v6h-2v2h-3v1H8v-1H5v-2H3V4h2V2h3V1z" fill="#e8e4d8"/>
-          <!-- Amber crescent, Cyan iris, and Dark cyan shadow -->
-          <path d="M7 3h2v8H7z" fill="#ff6b35"/>
-          <path d="M9 2h6v10H9z" fill="#5bd0e8"/>
-          <path d="M15 3h2v8h-2z" fill="#2a7588"/>
-          <!-- Pupil & crisp white gleam -->
-          <path d="M11 4h2v6h-2z" fill="#050309"/>
-          <rect x="10" y="4" width="2" height="2" fill="#ffffff"/>
-        </svg>
-      </div>
-      <div class="wakeAction">▸ CLICK ANYWHERE TO WAKE UP ◂</div>
-      <div class="wakeHint">[ OR PRESS SPACEBAR / ENTER ]</div>
-      <div class="wakeStatus">// INITIALIZE HEARTHIAN VISOR &amp; AUDIO //</div>
-    </div>
+    <div class="wakeAction">▸ CLICK ANYWHERE TO WAKE UP ◂</div>
   </div>
 </div>
 <button class="pxBtn" id="muteBtn" title="Sound">&#9834; SOUND</button>
