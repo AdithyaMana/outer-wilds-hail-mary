@@ -1447,9 +1447,9 @@ function show(i){
   $("#trackCtl").classList.toggle("show",i===3);
   $("#muteBtn").classList.toggle("show",i===3);
   AUDIO.resume();
-  ytPlay();
+  if(i>0)ytPlay();
   if(i===0){
-    armAudio();
+    armAudio(false);
     const p=$("#prologue p");
     restartAnim(p);
     p.addEventListener("animationend",()=>{
@@ -1470,8 +1470,8 @@ function show(i){
   if(i===3){AUDIO.stopPad();if(audioArmed)AUDIO.startMap();startMap();}
   requestAnimationFrame(applySpeed); // catch freshly-started CSS animations
 }
-$("#skipBtn").addEventListener("click",()=>{flybyRun=false;hyper=0;show(3);});
-addEventListener("keydown",e=>{if(e.key==="Escape"){ if($("#panel").classList.contains("open")) closePanel(); else if(cur<3){flybyRun=false;hyper=0;show(3);} }});
+$("#skipBtn").addEventListener("click",()=>{ytPlay();flybyRun=false;hyper=0;show(3);});
+addEventListener("keydown",e=>{if(e.key==="Escape"){ if($("#panel").classList.contains("open")) closePanel(); else if(cur<3){ytPlay();flybyRun=false;hyper=0;show(3);} }});
 
 /* ============ flyby ============ */
 const fCv=$("#flybyCanvas"),fctx=fCv.getContext("2d");
@@ -2643,14 +2643,14 @@ sizeAll();
 (function loop(t){drawStars(t||0);requestAnimationFrame(loop);})(0);
 
 let audioArmed=false;
-function armAudio(){
+function armAudio(immediatePlay=true){
   if(!audioArmed){
     audioArmed=true;
     AUDIO.init();
     AUDIO.resume();
     $("#soundHint").classList.remove("show");
   }
-  if(!AUDIO.isMuted()){
+  if(immediatePlay && !AUDIO.isMuted()){
     ytPlay();
   }
   setTimeout(updateTrackName,300);
@@ -2662,9 +2662,14 @@ function triggerWakeUp(){
   if(hasWokenUp)return;
   hasWokenUp=true;
 
-  // Direct user gesture audio unlock
-  armAudio();
+  // Direct user gesture audio unlock without immediate song start
+  armAudio(false);
   AUDIO.sfx.tuneLock();
+
+  // Delay the song starting by 5 seconds
+  setTimeout(()=>{
+    if(!AUDIO.isMuted())ytPlay();
+  },5000);
 
   document.body.classList.add("eyesOpen");
   const ws=document.getElementById("wakeUpScreen");
