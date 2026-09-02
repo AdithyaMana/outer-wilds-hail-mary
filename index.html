@@ -1504,6 +1504,8 @@ function show(i){
   phases.forEach((id,k)=>$("#"+id).classList.toggle("on",k===i));
   cur=i;
   $("#introCtl").classList.toggle("show",i<3);
+  $("#trackCtl").classList.toggle("show",i===3);
+  $("#muteBtn").classList.toggle("show",i===3);
   AUDIO.resume();
   ytPlay();
   if(i===0){
@@ -2707,7 +2709,6 @@ function armAudio(){
     AUDIO.init();
     AUDIO.resume();
     $("#soundHint").classList.remove("show");
-    $("#trackCtl").classList.add("show");
   }
   if(!AUDIO.isMuted()){
     ytPlay();
@@ -2754,7 +2755,6 @@ window.addEventListener("keydown",function onKeyWake(e){
 for(const ev of ["pointerdown","keydown","touchstart","mousedown","click","wheel"])
   window.addEventListener(ev,()=>{ if(hasWokenUp&&!audioArmed)armAudio(); },{passive:true});
 
-$("#muteBtn").classList.add("show");
 $("#muteBtn").innerHTML="&#9834; ON";
 $("#muteBtn").addEventListener("click",e=>{
   e.preventDefault();
@@ -2764,7 +2764,6 @@ $("#muteBtn").addEventListener("click",e=>{
     AUDIO.init();
     AUDIO.resume();
     $("#soundHint").classList.remove("show");
-    $("#trackCtl").classList.add("show");
   }
   const m=!AUDIO.isMuted();
   AUDIO.setMuted(m);
